@@ -4,6 +4,10 @@
 
 #include "hack.h"
 
+#if defined(WIN32) && !defined(MAX_PATH)
+#define MAX_PATH 260
+#endif
+
 staticfn boolean throne_mon_sound(struct monst *);
 staticfn boolean beehive_mon_sound(struct monst *);
 staticfn boolean morgue_mon_sound(struct monst *);

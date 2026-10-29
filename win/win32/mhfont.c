@@ -8,6 +8,8 @@
 #include "winos.h"
 #include "mhfont.h"
 
+void __cdecl font_table_cleanup(void);
+
 /* font table - 64 fonts ought to be enough */
 #define MAXFONTS 64
 
