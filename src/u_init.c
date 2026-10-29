@@ -1467,23 +1467,24 @@ offer_floor_loot(void)
     int i, n, chosen = 0;
     struct obj *choices[5];
     char buf[BUFSZ];
-    static const int pool[] = {
+    /* keep this list to simple object typ macros (compile-time constants) */
+    static const short pool[] = {
         ROCK, DART, DAGGER, SHORT_SWORD, CLUB, SPEAR, AXE,
         LEATHER_ARMOR, RING_MAIL, SMALL_SHIELD, HELMET, LEATHER_GLOVES,
         ELVEN_CLOAK, ROBE, FOOD_RATION, CRAM_RATION, APPLE,
         POT_HEALING, POT_EXTRA_HEALING, POT_GAIN_ABILITY,
         SCR_ENCHANT_WEAPON, SCR_ENCHANT_ARMOR, SCR_IDENTIFY,
         WAN_LIGHT, WAN_MAGIC_MISSILE, WAN_DIGGING,
-        RING_OF_PROTECTION, RING_OF_INCREASE_DAMAGE,
+        RIN_PROTECTION, RIN_INCREASE_DAMAGE,
         AMULET_OF_ESP, LUCKSTONE, TOUCHSTONE
     };
-    int pool_n = (int) SIZE(pool);
+    int pool_n = (int) (sizeof pool / sizeof pool[0]);
 
     if (u.uz.dlevel <= 1)
         return; /* no bonus on the first floor */
 
     for (i = 0; i < 5; i++) {
-        choices[i] = mksobj(pool[rn2(pool_n)], TRUE, FALSE);
+        choices[i] = mksobj((int) pool[rn2(pool_n)], TRUE, FALSE);
         if (!choices[i])
             choices[i] = mksobj(ROCK, TRUE, FALSE);
         if (choices[i] && rn2(4) == 0
@@ -1498,9 +1499,6 @@ offer_floor_loot(void)
 
     win = create_nhwindow(NHW_MENU);
     start_menu(win, MENU_BEHAVE_STANDARD);
-    any = cg.zeroany;
-    add_menu(win, &nul_glyphinfo, &any, 0, 0, ATR_NONE, NO_COLOR,
-             "Pick TWO supplies for this floor:", MENU_ITEMFLAGS_IS_TEXT);
     for (i = 0; i < 5; i++) {
         if (!choices[i])
             continue;
@@ -1510,7 +1508,7 @@ offer_floor_loot(void)
         add_menu(win, &nul_glyphinfo, &any, 0, 0, ATR_NONE, NO_COLOR,
                  buf, MENU_ITEMFLAGS_NONE);
     }
-    end_menu(win, "Floor supplies — choose 2");
+    end_menu(win, "Floor supplies — pick up to 2");
     n = select_menu(win, PICK_ANY, &picks);
     destroy_nhwindow(win);
 
@@ -1523,7 +1521,7 @@ offer_floor_loot(void)
                                        "Oops!  %s out of your grasp!",
                                        The(aobjnam(choices[idx], "slip")),
                                        (const char *) 0);
-            choices[idx] = 0;
+            choices[idx] = (struct obj *) 0;
             chosen++;
         }
         free((genericptr_t) picks);
