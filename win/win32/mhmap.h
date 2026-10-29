@@ -14,6 +14,7 @@ HWND mswin_init_map_window(void);
 void mswin_map_layout(HWND hWnd, LPSIZE lpsz);
 int mswin_map_mode(HWND hWnd, int mode);
 void mswin_map_update(HWND hWnd);
+BOOL mswin_tiles_usable(void);
 
 /* floating damage numbers over the map (call from combat hooks) */
 void mswin_map_float_damage(int x, int y, int dmg, int is_heal);

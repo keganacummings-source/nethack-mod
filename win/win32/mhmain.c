@@ -1214,6 +1214,11 @@ mswin_select_map_mode(int mode)
         return;
     }
 
+    /* no usable tileset loaded: stay in text mode */
+    if (!IS_MAP_ASCII(mode) && !mswin_tiles_usable())
+        mode = IS_MAP_FIT_TO_SCREEN(mode) ? MAP_MODE_ASCII_FIT_TO_SCREEN
+                                          : MAP_MODE_ASCII12x16;
+
     /* override for Rogue level */
     if (Is_rogue_level(&u.uz) && !IS_MAP_ASCII(mode))
         return;
