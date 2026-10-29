@@ -68,14 +68,15 @@ HBRUSH status_fg_brush = NULL;
 HBRUSH message_bg_brush = NULL;
 HBRUSH message_fg_brush = NULL;
 
-COLORREF menu_bg_color = RGB(0, 0, 0);
-COLORREF menu_fg_color = RGB(0xFF, 0xFF, 0xFF);
-COLORREF text_bg_color = RGB(0, 0, 0);
-COLORREF text_fg_color = RGB(0xFF, 0xFF, 0xFF);
-COLORREF status_bg_color = RGB(0, 0, 0);
-COLORREF status_fg_color = RGB(0xFF, 0xFF, 0xFF);
-COLORREF message_bg_color = RGB(0, 0, 0);
-COLORREF message_fg_color = RGB(0xFF, 0xFF, 0xFF);
+/* Dreamdaw defaults (overridden by OPTIONS=windowcolors when set) */
+COLORREF menu_bg_color = RGB(0x24, 0x18, 0x14);
+COLORREF menu_fg_color = RGB(0xF0, 0xE2, 0xC8);
+COLORREF text_bg_color = RGB(0x24, 0x18, 0x14);
+COLORREF text_fg_color = RGB(0xF0, 0xE2, 0xC8);
+COLORREF status_bg_color = RGB(0x14, 0x0E, 0x0C);
+COLORREF status_fg_color = RGB(0xF0, 0xE2, 0xC8);
+COLORREF message_bg_color = RGB(0x14, 0x0E, 0x0C);
+COLORREF message_fg_color = RGB(0xF0, 0xE2, 0xC8);
 
 strbuf_t raw_print_strbuf = { 0 };
 color_attr mswin_menu_promptstyle = { NO_COLOR, ATR_NONE };
@@ -257,6 +258,40 @@ mswin_init_nhwindows(int *argc, char **argv)
                             &status_bg_brush, &status_bg_color);
     mswin_color_from_string(iflags.wcolors[wcolor_text].bg,
                             &text_bg_brush, &text_bg_color);
+
+    /* Ensure theme brushes exist even if windowcolors strings were empty */
+    if (!menu_bg_brush) {
+        menu_bg_color = RGB(0x24, 0x18, 0x14);
+        menu_bg_brush = CreateSolidBrush(menu_bg_color);
+    }
+    if (!menu_fg_brush) {
+        menu_fg_color = RGB(0xF0, 0xE2, 0xC8);
+        menu_fg_brush = CreateSolidBrush(menu_fg_color);
+    }
+    if (!text_bg_brush) {
+        text_bg_color = RGB(0x24, 0x18, 0x14);
+        text_bg_brush = CreateSolidBrush(text_bg_color);
+    }
+    if (!text_fg_brush) {
+        text_fg_color = RGB(0xF0, 0xE2, 0xC8);
+        text_fg_brush = CreateSolidBrush(text_fg_color);
+    }
+    if (!status_bg_brush) {
+        status_bg_color = RGB(0x14, 0x0E, 0x0C);
+        status_bg_brush = CreateSolidBrush(status_bg_color);
+    }
+    if (!status_fg_brush) {
+        status_fg_color = RGB(0xF0, 0xE2, 0xC8);
+        status_fg_brush = CreateSolidBrush(status_fg_color);
+    }
+    if (!message_bg_brush) {
+        message_bg_color = RGB(0x14, 0x0E, 0x0C);
+        message_bg_brush = CreateSolidBrush(message_bg_color);
+    }
+    if (!message_fg_brush) {
+        message_fg_color = RGB(0xF0, 0xE2, 0xC8);
+        message_fg_brush = CreateSolidBrush(message_fg_color);
+    }
 
     if (iflags.wc_splash_screen)
         mswin_display_splash_window(FALSE);

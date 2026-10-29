@@ -1,0 +1,24 @@
+Deep Dreamdaw / TURBZ UI theme
+==============================
+Reference: https://dreamdaw.com
+
+Palette applied in code (not only nethackrc):
+  ink    #140E0C  main, status, messages, map chrome
+  panel  #241814  menus, text windows
+  cream  #F0E2C8  primary text
+  kyo    #E6C15A  accents / heals (map overlays)
+  coral  #C4473A  damage
+  line   #5A483A  status strip edge
+
+Files:
+  win/win32/mhtheme.h     palette constants
+  win/win32/mswproc.c     default + forced theme brushes
+  win/win32/mhstatus.c    ink/cream + accent line
+  win/win32/mhmenu.c      panel/cream menus
+  win/win32/mhmsgwnd.c    ink message log
+  win/win32/mhtext.c      panel text windows
+  win/win32/mhmain.c      ink main frame
+  win/win32/mhmap.c       ink map chrome + themed combat overlays
+  sys/windows/nethackrc.template  VT323 fonts + windowcolors
+
+Still recommended: install VT323, merge windowcolors into live config.

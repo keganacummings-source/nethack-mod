@@ -164,7 +164,7 @@ NHTextWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                                                       DEFAULT_COLOR_FG_TEXT));
             return (INT_PTR)(text_bg_brush
                                  ? text_bg_brush
-                                 : SYSCLR_TO_BRUSH(DEFAULT_COLOR_BG_TEXT));
+                                 : (text_bg_brush ? text_bg_brush : GetStockObject(BLACK_BRUSH)));
         }
     }
         return FALSE;
@@ -293,7 +293,7 @@ NHEditHookWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         GetClientRect(hWnd, &rc);
         FillRect(hDC, &rc, text_bg_brush
                                ? text_bg_brush
-                               : SYSCLR_TO_BRUSH(DEFAULT_COLOR_BG_TEXT));
+                               : (text_bg_brush ? text_bg_brush : GetStockObject(BLACK_BRUSH)));
         return 1;
 
     case WM_KEYDOWN:

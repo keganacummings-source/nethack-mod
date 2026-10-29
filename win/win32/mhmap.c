@@ -556,7 +556,7 @@ register_map_window_class(void)
     wcex.hIcon = NULL;
     wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
     wcex.hbrBackground =
-        CreateSolidBrush(RGB(0, 0, 0)); /* set backgroup here */
+        CreateSolidBrush(RGB(0x14, 0x0E, 0x0C)); /* dreamdaw ink map chrome */
     wcex.lpszMenuName = NULL;
     wcex.lpszClassName = szNHMapWindowClass;
 

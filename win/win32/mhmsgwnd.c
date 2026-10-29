@@ -129,7 +129,7 @@ register_message_window_class(void)
     wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
     wcex.hbrBackground = message_bg_brush
                              ? message_bg_brush
-                             : SYSCLR_TO_BRUSH(DEFAULT_COLOR_BG_MSG);
+                             : (message_bg_brush ? message_bg_brush : GetStockObject(BLACK_BRUSH));
     wcex.lpszMenuName = NULL;
     wcex.lpszClassName = szMessageWindowClass;
 
@@ -581,8 +581,8 @@ setMsgTextColor(HDC hdc, int gray)
             color1 = message_bg_color;
             color2 = message_fg_color;
         } else {
-            color1 = (COLORREF) GetSysColor(DEFAULT_COLOR_BG_MSG);
-            color2 = (COLORREF) GetSysColor(DEFAULT_COLOR_FG_MSG);
+            color1 = (COLORREF) RGB(0x14, 0x0E, 0x0C);
+            color2 = (COLORREF) RGB(0xF0, 0xE2, 0xC8);
         }
         /* Make a "gray" color by taking the average of the individual R,G,B
            components of two colors. Thanks to Jonathan del Strother */
@@ -591,7 +591,7 @@ setMsgTextColor(HDC hdc, int gray)
                  (GetBValue(color1) + GetBValue(color2)) / 2);
     } else {
         fg = message_fg_brush ? message_fg_color
-                              : (COLORREF) GetSysColor(DEFAULT_COLOR_FG_MSG);
+                              : (COLORREF) RGB(0xF0, 0xE2, 0xC8);
     }
 
     return SetTextColor(hdc, fg);
@@ -615,7 +615,7 @@ onPaint(HWND hWnd)
 
     OldBg = SetBkColor(
         hdc, message_bg_brush ? message_bg_color
-                              : (COLORREF) GetSysColor(DEFAULT_COLOR_BG_MSG));
+                              : (COLORREF) RGB(0x14, 0x0E, 0x0C));
     OldFg = setMsgTextColor(hdc, 0);
 
     data = (PNHMessageWindow) GetWindowLongPtr(hWnd, GWLP_USERDATA);

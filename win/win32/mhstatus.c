@@ -140,12 +140,12 @@ mswin_init_status_window(void)
     mswin_apply_window_style(ret);
 
     if (status_bg_brush == NULL) {
-        status_bg_color = (COLORREF)GetSysColor(DEFAULT_COLOR_BG_STATUS);
+        status_bg_color = RGB(0x14, 0x0E, 0x0C); /* dreamdaw ink */
         status_bg_brush = CreateSolidBrush(status_bg_color);
     }
 
     if (status_fg_brush == NULL) {
-        status_fg_color = (COLORREF)GetSysColor(DEFAULT_COLOR_FG_STATUS);
+        status_fg_color = RGB(0xF0, 0xE2, 0xC8); /* dreamdaw cream */
         status_fg_brush = CreateSolidBrush(status_fg_color);
     }
 
@@ -310,6 +310,15 @@ onWMPaint(HWND hWnd, WPARAM wParam UNUSED, LPARAM lParam UNUSED)
     clear_rect.bottom = height;
 
     FillRect(hdc, &clear_rect, status_bg_brush);
+    /* dreamdaw: subtle top accent line */
+    {
+        HPEN pen = CreatePen(PS_SOLID, 1, RGB(0x5A, 0x48, 0x3A));
+        HPEN oldp = SelectObject(hdc, pen);
+        MoveToEx(hdc, clear_rect.left, clear_rect.top, NULL);
+        LineTo(hdc, clear_rect.right, clear_rect.top);
+        SelectObject(hdc, oldp);
+        DeleteObject(pen);
+    }
 
     if (data->status_lines != NULL) {
         

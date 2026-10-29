@@ -505,14 +505,12 @@ MenuWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         HWND hwndEdit = (HWND) lParam;
         if (hwndEdit == GetDlgItem(hWnd, IDC_MENU_TEXT)) {
             SetBkColor(hdcEdit, text_bg_brush ? text_bg_color
-                                              : (COLORREF) GetSysColor(
-                                                    DEFAULT_COLOR_BG_TEXT));
+                                              : RGB(0x24, 0x18, 0x14) /* theme panel */);
             SetTextColor(hdcEdit, text_fg_brush ? text_fg_color
-                                                : (COLORREF) GetSysColor(
-                                                      DEFAULT_COLOR_FG_TEXT));
+                                                : RGB(0xF0, 0xE2, 0xC8) /* theme cream */);
             return (INT_PTR)(text_bg_brush
                                  ? text_bg_brush
-                                 : SYSCLR_TO_BRUSH(DEFAULT_COLOR_BG_TEXT));
+                                 : (menu_bg_brush ? menu_bg_brush : GetStockObject(BLACK_BRUSH)));
         }
     }
     return FALSE;
@@ -520,7 +518,7 @@ MenuWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_CTLCOLORDLG:
         return (INT_PTR)(text_bg_brush
                             ? text_bg_brush
-                            : SYSCLR_TO_BRUSH(DEFAULT_COLOR_BG_TEXT));
+                            : (menu_bg_brush ? menu_bg_brush : GetStockObject(BLACK_BRUSH)));
 
     case WM_DESTROY:
         if (data) {
@@ -915,14 +913,11 @@ SetMenuListType(HWND hWnd, int how)
 
     /* set control colors */
     ListView_SetBkColor(control, menu_bg_brush ? menu_bg_color
-                                               : (COLORREF) GetSysColor(
-                                                     DEFAULT_COLOR_BG_MENU));
+                                               : RGB(0x24, 0x18, 0x14) /* theme panel */);
     ListView_SetTextBkColor(
-        control, menu_bg_brush ? menu_bg_color : (COLORREF) GetSysColor(
-                                                     DEFAULT_COLOR_BG_MENU));
+        control, menu_bg_brush ? menu_bg_color : RGB(0x24, 0x18, 0x14) /* theme panel */);
     ListView_SetTextColor(
-        control, menu_fg_brush ? menu_fg_color : (COLORREF) GetSysColor(
-                                                     DEFAULT_COLOR_FG_MENU));
+        control, menu_fg_brush ? menu_fg_color : RGB(0xF0, 0xE2, 0xC8) /* theme cream */);
 
     /* set control font */
     fnt = SendMessage(hWnd, WM_GETFONT, (WPARAM) 0, (LPARAM) 0);
@@ -1066,12 +1061,12 @@ onDrawItem(HWND hWnd, WPARAM wParam, LPARAM lParam)
     cached_font * font = mswin_get_font(NHW_MENU, item->attr, lpdis->hDC, FALSE);
     saveFont = SelectObject(lpdis->hDC, font->hFont);
     NewBg = menu_bg_brush ? menu_bg_color
-                          : (COLORREF) GetSysColor(DEFAULT_COLOR_BG_MENU);
+                          : (COLORREF) RGB(0x24, 0x18, 0x14);
     OldBg = SetBkColor(lpdis->hDC, NewBg);
     OldFg = SetTextColor(lpdis->hDC,
                          menu_fg_brush
                              ? menu_fg_color
-                             : (COLORREF) GetSysColor(DEFAULT_COLOR_FG_MENU));
+                             : (COLORREF) RGB(0xF0, 0xE2, 0xC8));
 
     if (item->color != NO_COLOR)
         (void) SetTextColor(lpdis->hDC, nhcolor_to_RGB(item->color));
@@ -1249,7 +1244,7 @@ onDrawItem(HWND hWnd, WPARAM wParam, LPARAM lParam)
             drawRect.bottom = lpdis->rcItem.bottom;
             FillRect(lpdis->hDC, &drawRect,
                      menu_bg_brush ? menu_bg_brush
-                                   : SYSCLR_TO_BRUSH(DEFAULT_COLOR_BG_MENU));
+                                   : (menu_bg_brush ? menu_bg_brush : GetStockObject(BLACK_BRUSH)));
 
             /* draw text */
             DrawText(lpdis->hDC, wbuf, _tcslen(wbuf), &drawRect,
@@ -1754,7 +1749,7 @@ NHMenuTextWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         GetClientRect(hWnd, &rc);
         FillRect(hDC, &rc, text_bg_brush
                                ? text_bg_brush
-                               : SYSCLR_TO_BRUSH(DEFAULT_COLOR_BG_TEXT));
+                               : (menu_bg_brush ? menu_bg_brush : GetStockObject(BLACK_BRUSH)));
         return 0;
 
     case WM_KEYDOWN:
