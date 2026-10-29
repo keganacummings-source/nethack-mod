@@ -11,12 +11,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: microsoft/setup-msbuild@v2
+
+      # tiles.bmp must exist in win\win32\ before the RC compiler runs.
+      # The PixelHack 32x32 tileset ships pre-built at the repo root.
+      - name: Copy PixelHack tileset into win\win32
+        shell: pwsh
+        run: Copy-Item tiles.bmp win\win32\tiles.bmp -Force
+
       - name: Build (Release x64)
         working-directory: sys/windows/vs
         run: msbuild NetHack.sln /t:Build /p:Configuration=Release /p:Platform=x64 /m
+
       - name: Show output
         shell: pwsh
         run: Get-ChildItem -Recurse binary | Select-Object -First 60 FullName
+
+      # Copy the sounds/ SFX pack next to the EXE so SOUND=MESG lines work out of the box.
+      - name: Copy sounds folder to output
+        shell: pwsh
+        run: |
+          $dest = "binary\Release\x64\sounds"
+          if (-not (Test-Path $dest)) { New-Item -ItemType Directory -Path $dest | Out-Null }
+          Copy-Item sounds\* $dest -Force
+
+      # Copy tiles.bmp next to the EXE for users who set tile_file:tiles.bmp (relative path).
+      - name: Copy tiles.bmp to output
+        shell: pwsh
+        run: Copy-Item tiles.bmp binary\Release\x64\tiles.bmp -Force
+
       - uses: actions/upload-artifact@v4
         with:
           name: NetHack-modern-mouse-win-x64
