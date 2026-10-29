@@ -1,0 +1,37 @@
+PixelHack tiles + sound / QoL pack
+==================================
+
+1) DEFAULT TILESET — PixelHack 32x32
+   File: tiles.bmp (and PixelHack500_32x32.png source)
+   Place tiles.bmp in the same folder as NetHackW.exe (or set a full path).
+
+   nethackrc lines:
+     OPTIONS=tile_file:tiles.bmp,tile_width:32,tile_height:32
+     OPTIONS=map_mode:tiles
+
+   Source image: PixelHack500 32x32 sheet (40 x 58 tiles).
+
+2) SOUND FX
+   NetHack 3D (JamesIV4/nethack-3d) implements sound inside its own
+   React/Three.js client. That code does not run inside the native
+   Windows GUI build.
+
+   What we *can* do natively is NetHack’s SOUND=MESG system:
+   - Create a folder named "sounds" next to the binary
+   - Drop WAV files named in nethackrc.template (lock.wav, hit.wav, …)
+   - Keep the SOUNDDIR=sounds and SOUND=MESG lines
+
+   You can rip/rename free SFX to match those filenames, or copy a
+   community pack such as YHACS-style message mappings.
+
+3) QOL (native options inspired by NetHack 3D comfort features)
+   - Always-on inventory panel
+   - Mouse travel / click menus
+   - Autodescribe
+   - Pet/pile hilite, lit corridors
+   - Status hilites + hitpoint bar
+   - Floating damage / HP bars (from earlier combat UI pack)
+
+   Full 3D first-person view, shatter deaths, and in-client sound-pack
+   editors stay exclusive to the NetHack 3D client:
+   https://github.com/JamesIV4/nethack-3d
