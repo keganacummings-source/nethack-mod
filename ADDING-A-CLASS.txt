@@ -1,0 +1,32 @@
+ADDING A NEW PLAYER CLASS (template used by Random)
+=====================================================
+
+Random is a real selectable role in the role list. Use it as a checklist
+when adding more classes.
+
+1) include/hack.h
+   - Bump NUM_ROLES (was 13, Random made it 14)
+
+2) src/role.c  — add an entry in roles[] BEFORE UNDEFINED_ROLE
+   - name, ranks, gods, filecode, homebase, intermed
+   - malenum: for a full class, add a PM_* player monster in mons;
+     Random reuses PM_TOURIST as a body type (identify via urole.name.m)
+   - petnum, quest NPC PMs, enemies, artifact, allowed races/genders/aligns
+   - attribute mins/maxs, HP/energy tables, spell, quest art alignment
+
+3) src/u_init.c
+   - Add a static trobj[] starting inventory table
+   - Add case in u_init_role() switch (Role_switch / PM_*)
+   - Optional: branch on urole.name.m if sharing a PM with another role
+   - Optional: skills_for_role() entry (Random uses Tourist skills via shared PM)
+
+4) Quest data (later, for a polished class)
+   - dat/*.lua or quest text for the role filecode
+   - Unique quest artifact optional
+
+5) Rebuild
+
+How to play Random
+  - At character creation, select role "Random"
+  - Stats scrambled 6–18 each
+  - Starting kit: food + 4–6 random items (rock through magical gear)

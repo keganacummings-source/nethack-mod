@@ -571,6 +571,53 @@ const struct Role roles[NUM_ROLES+1] = {
       A_INT,
       SPE_MAGIC_MISSILE,
       -4 },
+    /* ---- Custom test class: Random ----
+     * Template for adding future player classes.
+     * Reuses Tourist quest/PM body so we don't need a new monster entry.
+     * Starting gear + stats are randomized in u_init.c.
+     */
+    { { "Random", 0 },
+      { { "Wanderer", 0 },
+        { "Drifter", 0 },
+        { "Vagabond", 0 },
+        { "Fortune-seeker", 0 },
+        { "Scavenger", 0 },
+        { "Pathfinder", 0 },
+        { "Daredevil", 0 },
+        { "Trailblazer", 0 },
+        { "Legend", 0 } },
+      "Blind Io", "_The Lady", "Offler", /* same pantheon as Tourist for now */
+      "Rnd",
+      "the Crossroads",
+      "the Hall of Chance",
+      PM_TOURIST,   /* body type; identify role via urole.name / ROLE_RANDOM */
+      NON_PM,
+      PM_TWOFLOWER,
+      PM_GUIDE,
+      PM_MASTER_OF_THIEVES,
+      PM_GIANT_SPIDER,
+      PM_FOREST_CENTAUR,
+      S_SPIDER,
+      S_CENTAUR,
+      ART_YENDORIAN_EXPRESS_CARD,
+      MH_HUMAN | MH_ELF | MH_DWARF | MH_GNOME | MH_ORC
+          | ROLE_MALE | ROLE_FEMALE
+          | ROLE_LAWFUL | ROLE_NEUTRAL | ROLE_CHAOTIC,
+      /* Str Int Wis Dex Con Cha - base averages; scrambled at init */
+      { 10, 10, 10, 10, 10, 10 },
+      { 18, 18, 18, 18, 18, 18 },
+      /* Init   Lower  Higher */
+      { 12, 0, 0, 8, 1, 0 }, /* Hit points */
+      { 2, 1, 0, 1, 0, 1 },
+      12, /* Energy */
+      5,
+      5,
+      0,
+      1,
+      10,
+      A_INT,
+      SPE_DETECT_TREASURE,
+      -4 },
     /* Array terminator */
     UNDEFINED_ROLE,
 };

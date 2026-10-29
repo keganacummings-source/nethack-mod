@@ -177,6 +177,13 @@ static const struct trobj Wizard[] = {
     { 0, 0, 0, 0, 0, 0 }
 };
 
+/* Random class: minimal guaranteed kit; extras rolled in u_init_role */
+static const struct trobj Random_role[] = {
+    { FOOD_RATION, 0, FOOD_CLASS, 2, 2, 0 },
+    { 0, 0, 0, 0, 0, 0 }
+};
+
+
 /*
  *      Optional extra inventory items.
  */
@@ -753,16 +760,49 @@ u_init_role(void)
         }
         break;
     case PM_TOURIST:
-        u.umoney0 = rnd(1000);
-        ini_inv(Tourist);
-        if (!rn2(25))
-            ini_inv(Tinopener);
-        else if (!rn2(25))
-            ini_inv(Leash);
-        else if (!rn2(25))
-            ini_inv(Towel);
-        else if (!rn2(20))
-            ini_inv(Magicmarker);
+        /* Random class reuses PM_TOURIST body; distinguish by role name */
+        if (urole.name.m && !strcmp(urole.name.m, "Random")) {
+            static const int rnd_pool[] = {
+                ROCK, DART, DAGGER, SHORT_SWORD, CLUB, SPEAR, AXE,
+                LEATHER_ARMOR, RING_MAIL, SMALL_SHIELD, HELMET,
+                LEATHER_GLOVES, ELVEN_CLOAK, ROBE, FOOD_RATION,
+                POT_HEALING, POT_EXTRA_HEALING, SCR_ENCHANT_WEAPON,
+                SCR_IDENTIFY, WAN_LIGHT, WAN_MAGIC_MISSILE,
+                LUCKSTONE, TOUCHSTONE
+            };
+            int pi, n = (int) (sizeof rnd_pool / sizeof rnd_pool[0]);
+            u.umoney0 = rn1(500, 200);
+            ini_inv(Random_role);
+            /* 4–6 random toys */
+            for (pi = 0; pi < 4 + rn2(3); pi++) {
+                struct obj *otmp = mksobj(rnd_pool[rn2(n)], TRUE, FALSE);
+                if (!otmp)
+                    continue;
+                if (rn2(3) == 0
+                    && (otmp->oclass == WEAPON_CLASS
+                        || otmp->oclass == ARMOR_CLASS))
+                    otmp->spe = 1 + rn2(3);
+                if (rn2(5) == 0)
+                    bless(otmp);
+                (void) hold_another_object(otmp,
+                                           "Oops!  %s out of your grasp!",
+                                           The(aobjnam(otmp, "slip")),
+                                           (const char *) 0);
+            }
+            knows_class(WEAPON_CLASS);
+            knows_class(ARMOR_CLASS);
+        } else {
+            u.umoney0 = rnd(1000);
+            ini_inv(Tourist);
+            if (!rn2(25))
+                ini_inv(Tinopener);
+            else if (!rn2(25))
+                ini_inv(Leash);
+            else if (!rn2(25))
+                ini_inv(Towel);
+            else if (!rn2(20))
+                ini_inv(Magicmarker);
+        }
         break;
     case PM_VALKYRIE:
         ini_inv(Valkyrie);
@@ -1389,45 +1429,16 @@ u_init_inventory_attrs(void)
 
     init_attr(75);    /* init attribute values */
     vary_init_attr(); /* minor variation to attrs */
-    u_init_carry_attr_boost();
-
-    /* "Random" class flavor: if player name is Random (any case), scramble
-       level-1 attributes and grant a few extra random toys so each run
-       feels like a distinct build. */
-    if (!strcmpi(svp.plname, "Random")) {
-        int i;
-        for (i = 0; i < A_MAX; i++) {
-            /* keep attrs in a playable band */
-            ABASE(i) = 6 + rn2(13); /* 6..18 */
-            ATEMP(i) = 0;
+    /* Random class: scramble level-1 attributes into a playable band */
+    if (urole.name.m && !strcmp(urole.name.m, "Random")) {
+        int ai;
+        for (ai = 0; ai < A_MAX; ai++) {
+            ABASE(ai) = 6 + rn2(13); /* 6..18 */
+            ATEMP(ai) = 0;
         }
-        /* a couple of random bonus items (rock up through enchanted gear) */
-        {
-            static const int bonus_pool[] = {
-                ROCK, DART, DAGGER, SHORT_SWORD, CLUB, SPEAR,
-                LEATHER_ARMOR, SMALL_SHIELD, ELVEN_CLOAK,
-                POT_HEALING, POT_EXTRA_HEALING, SCR_ENCHANT_WEAPON,
-                SCR_ENCHANT_ARMOR, WAN_MAGIC_MISSILE, WAN_LIGHT,
-                RING_MAIL, HELMET, LEATHER_GLOVES, FOOD_RATION
-            };
-            int n = SIZE(bonus_pool);
-            for (i = 0; i < 3; i++) {
-                struct obj *otmp = mksobj(bonus_pool[rn2(n)], TRUE, FALSE);
-                if (!otmp)
-                    continue;
-                /* occasional enchantment */
-                if (rn2(3) == 0 && (otmp->oclass == WEAPON_CLASS
-                                   || otmp->oclass == ARMOR_CLASS))
-                    otmp->spe = 1 + rn2(3);
-                if (rn2(5) == 0)
-                    bless(otmp);
-                (void) hold_another_object(otmp, "Oops!  %s out of your grasp!",
-                                           The(aobjnam(otmp, "slip")),
-                                           (const char *) 0);
-            }
-        }
-        pline("Fate deals you a random hand...");
+        pline("The dice are cast — your fate is random.");
     }
+    u_init_carry_attr_boost();
 }
 
 /* side effects of starting inventory (e.g. discovering it) and skills (both
