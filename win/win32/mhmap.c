@@ -23,7 +23,9 @@
 
 #define CURSOR_BLINK_INTERVAL 1000 // milliseconds
 #define CURSOR_HEIGHT 2 // pixels
-#define MAX_FLOAT_DMG_TTL 45
+#define MAX_FLOAT_DMG_TTL 24
+#define FLOAT_DMG_TIMER_ID 1
+#define FLOAT_DMG_INTERVAL 50
 #define MAX_FLOAT_DMG 32
 
 #define TILEBMP_X(ntile) \
@@ -709,8 +711,26 @@ MapWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_TIMER:
-        data->cursorOn = !data->cursorOn;
-        dirty(data, data->xCur, data->yCur);
+        if (wParam == FLOAT_DMG_TIMER_ID) {
+            int k, any = 0;
+            for (k = 0; k < MAX_FLOAT_DMG; k++) {
+                if (data->floatDmg[k].value != 0 && data->floatDmg[k].ttl > 0) {
+                    data->floatDmg[k].ttl--;
+                    if (data->floatDmg[k].ttl <= 0) {
+                        data->floatDmg[k].value = 0;
+                        data->floatDmg[k].ttl = 0;
+                    } else {
+                        any = 1;
+                    }
+                }
+            }
+            InvalidateRect(hWnd, NULL, FALSE);
+            if (!any)
+                KillTimer(hWnd, FLOAT_DMG_TIMER_ID);
+        } else {
+            data->cursorOn = !data->cursorOn;
+            dirty(data, data->xCur, data->yCur);
+        }
         break;
 
     case WM_DPICHANGED: {
@@ -1208,72 +1228,113 @@ onPaint(HWND hWnd)
         ox, oy, frontWidth, frontHeight,
         data->backBufferDC, 0, 0, data->backWidth, data->backHeight, SRCCOPY);
 
-    /* ---- Enemy HP bars (visible monsters on map) ---- */
-    if (data->xFrontTile >= 8) {
+    /* ---- Enemy HP bars (pixel-style, only for spotted monsters) ---- */
+    if (data->xFrontTile >= 10 && data->yFrontTile >= 10) {
         int i, j;
         for (i = 0; i < COLNO; i++) {
             for (j = 0; j < ROWNO; j++) {
                 int g = data->map[i][j].glyph;
-                /* glyph_is_monster is the portable test; fall back to range */
-                if (glyph_is_monster(g)) {
+                if (!glyph_is_monster(g))
+                    continue;
+                {
                     struct monst *mtmp = m_at(i, j);
-                    if (mtmp && mtmp->mhpmax > 0 && canspotmon(mtmp)) {
-                        int barW = data->xFrontTile - 2;
-                        int barH = max(2, data->yFrontTile / 8);
-                        int px = ox + i * data->xFrontTile + 1;
-                        int py = oy + j * data->yFrontTile + 1;
-                        int filled = (barW * mtmp->mhp) / mtmp->mhpmax;
-                        if (filled < 0) filled = 0;
-                        if (filled > barW) filled = barW;
-                        /* background (empty) */
-                        RECT rbg = { px, py, px + barW, py + barH };
-                        HBRUSH hEmpty = CreateSolidBrush(RGB(40, 40, 40));
-                        FillRect(hFrontBufferDC, &rbg, hEmpty);
-                        DeleteObject(hEmpty);
-                        /* filled portion: green -> yellow -> red */
+                    int barW, barH, px, py, filled, pct;
+                    RECT rOuter, rInner, rFill;
+                    HBRUSH hBrush;
+                    HPEN hPen, hOldPen;
+                    if (!mtmp || mtmp->mhpmax <= 0 || !canspotmon(mtmp))
+                        continue;
+                    /* hide full-health bars to reduce clutter (always show if hurt) */
+                    if (mtmp->mhp >= mtmp->mhpmax)
+                        continue;
+                    barW = data->xFrontTile - 4;
+                    if (barW < 6) barW = 6;
+                    barH = max(3, data->yFrontTile / 6);
+                    px = ox + i * data->xFrontTile + 2;
+                    py = oy + j * data->yFrontTile + 2;
+                    filled = (barW * mtmp->mhp) / mtmp->mhpmax;
+                    if (filled < 0) filled = 0;
+                    if (filled > barW) filled = barW;
+                    pct = (mtmp->mhp * 100) / mtmp->mhpmax;
+
+                    /* 1px black outer border */
+                    rOuter.left = px - 1; rOuter.top = py - 1;
+                    rOuter.right = px + barW + 1; rOuter.bottom = py + barH + 1;
+                    hBrush = CreateSolidBrush(RGB(0, 0, 0));
+                    FillRect(hFrontBufferDC, &rOuter, hBrush);
+                    DeleteObject(hBrush);
+                    /* dark empty track */
+                    rInner.left = px; rInner.top = py;
+                    rInner.right = px + barW; rInner.bottom = py + barH;
+                    hBrush = CreateSolidBrush(RGB(24, 24, 24));
+                    FillRect(hFrontBufferDC, &rInner, hBrush);
+                    DeleteObject(hBrush);
+                    /* fill color */
+                    {
                         COLORREF hc;
-                        int pct = (mtmp->mhp * 100) / mtmp->mhpmax;
-                        if (pct > 66) hc = RGB(40, 200, 40);
-                        else if (pct > 33) hc = RGB(220, 200, 40);
-                        else hc = RGB(220, 40, 40);
-                        RECT rfg = { px, py, px + filled, py + barH };
-                        HBRUSH hFill = CreateSolidBrush(hc);
-                        FillRect(hFrontBufferDC, &rfg, hFill);
-                        DeleteObject(hFill);
+                        if (pct > 66) hc = RGB(48, 196, 48);
+                        else if (pct > 33) hc = RGB(220, 180, 32);
+                        else hc = RGB(220, 48, 48);
+                        rFill.left = px; rFill.top = py;
+                        rFill.right = px + filled; rFill.bottom = py + barH;
+                        hBrush = CreateSolidBrush(hc);
+                        FillRect(hFrontBufferDC, &rFill, hBrush);
+                        DeleteObject(hBrush);
                     }
+                    (void) hPen; (void) hOldPen;
                 }
             }
         }
     }
 
-    /* ---- Floating damage numbers ---- */
+    /* ---- Floating combat numbers (pixel outline, timer-driven TTL) ---- */
     {
         int k;
         HFONT hOldFont, hDmgFont;
+        int fontH = max(12, data->yFrontTile * 2 / 3);
         SetBkMode(hFrontBufferDC, TRANSPARENT);
         hDmgFont = CreateFont(
-            max(14, data->yFrontTile * 3 / 4), 0, 0, 0, FW_BOLD,
+            -fontH, 0, 0, 0, FW_BOLD,
             FALSE, FALSE, FALSE, ANSI_CHARSET,
-            OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+            OUT_RASTER_PRECIS, CLIP_DEFAULT_PRECIS,
             NONANTIALIASED_QUALITY, FIXED_PITCH | FF_MODERN,
-            TEXT("Consolas"));
+            TEXT("Terminal"));
+        if (!hDmgFont)
+            hDmgFont = CreateFont(
+                -fontH, 0, 0, 0, FW_BOLD,
+                FALSE, FALSE, FALSE, ANSI_CHARSET,
+                OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+                NONANTIALIASED_QUALITY, FIXED_PITCH | FF_MODERN,
+                TEXT("Consolas"));
         hOldFont = SelectObject(hFrontBufferDC, hDmgFont);
         for (k = 0; k < MAX_FLOAT_DMG; k++) {
             if (data->floatDmg[k].value != 0 && data->floatDmg[k].ttl > 0) {
                 char buf[16];
                 RECT tr;
+                int rise = ((MAX_FLOAT_DMG_TTL - data->floatDmg[k].ttl)
+                            * data->yFrontTile) / MAX_FLOAT_DMG_TTL;
                 int px = ox + data->floatDmg[k].x * data->xFrontTile;
-                int py = oy + data->floatDmg[k].y * data->yFrontTile
-                         - (8 * (MAX_FLOAT_DMG_TTL - data->floatDmg[k].ttl) / MAX_FLOAT_DMG_TTL);
+                int py = oy + data->floatDmg[k].y * data->yFrontTile - rise;
+                int ox2, oy2;
                 snprintf(buf, sizeof buf, "%d", data->floatDmg[k].value);
+                tr.left = px - data->xFrontTile;
+                tr.top = py - fontH;
+                tr.right = px + data->xFrontTile * 2;
+                tr.bottom = py + data->yFrontTile;
+                /* black pixel outline (4-dir) for readability on any tile */
+                SetTextColor(hFrontBufferDC, RGB(0, 0, 0));
+                for (ox2 = -1; ox2 <= 1; ox2++) {
+                    for (oy2 = -1; oy2 <= 1; oy2++) {
+                        if (ox2 == 0 && oy2 == 0) continue;
+                        RECT tr2 = tr;
+                        OffsetRect(&tr2, ox2, oy2);
+                        DrawTextA(hFrontBufferDC, buf, -1, &tr2,
+                                  DT_CENTER | DT_SINGLELINE | DT_NOCLIP);
+                    }
+                }
                 SetTextColor(hFrontBufferDC, data->floatDmg[k].color);
-                tr.left = px; tr.top = py;
-                tr.right = px + data->xFrontTile; tr.bottom = py + data->yFrontTile;
                 DrawTextA(hFrontBufferDC, buf, -1, &tr,
                           DT_CENTER | DT_SINGLELINE | DT_NOCLIP);
-                data->floatDmg[k].ttl--;
-                if (data->floatDmg[k].ttl <= 0)
-                    data->floatDmg[k].value = 0;
             }
         }
         SelectObject(hFrontBufferDC, hOldFont);
@@ -1292,6 +1353,8 @@ mswin_map_float_damage(int x, int y, int dmg, int is_heal)
     int k;
     if (!IsWindow(hWnd) || dmg == 0)
         return;
+    if (x < 0 || y < 0 || x >= COLNO || y >= ROWNO)
+        return;
     data = (PNHMapWindow) GetWindowLongPtr(hWnd, GWLP_USERDATA);
     if (!data)
         return;
@@ -1301,11 +1364,13 @@ mswin_map_float_damage(int x, int y, int dmg, int is_heal)
             data->floatDmg[k].y = y;
             data->floatDmg[k].value = dmg;
             data->floatDmg[k].ttl = MAX_FLOAT_DMG_TTL;
-            data->floatDmg[k].color = is_heal ? RGB(80, 255, 80) : RGB(255, 60, 60);
+            /* pixel-ish saturated colors */
+            data->floatDmg[k].color = is_heal ? RGB(80, 220, 80)
+                                              : RGB(255, 48, 48);
             break;
         }
     }
-    /* force a repaint so numbers animate */
+    SetTimer(hWnd, FLOAT_DMG_TIMER_ID, FLOAT_DMG_INTERVAL, NULL);
     InvalidateRect(hWnd, NULL, FALSE);
 }
 

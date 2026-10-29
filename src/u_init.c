@@ -1390,6 +1390,44 @@ u_init_inventory_attrs(void)
     init_attr(75);    /* init attribute values */
     vary_init_attr(); /* minor variation to attrs */
     u_init_carry_attr_boost();
+
+    /* "Random" class flavor: if player name is Random (any case), scramble
+       level-1 attributes and grant a few extra random toys so each run
+       feels like a distinct build. */
+    if (!strcmpi(svp.plname, "Random")) {
+        int i;
+        for (i = 0; i < A_MAX; i++) {
+            /* keep attrs in a playable band */
+            ABASE(i) = 6 + rn2(13); /* 6..18 */
+            ATEMP(i) = 0;
+        }
+        /* a couple of random bonus items (rock up through enchanted gear) */
+        {
+            static const int bonus_pool[] = {
+                ROCK, DART, DAGGER, SHORT_SWORD, CLUB, SPEAR,
+                LEATHER_ARMOR, SMALL_SHIELD, ELVEN_CLOAK,
+                POT_HEALING, POT_EXTRA_HEALING, SCR_ENCHANT_WEAPON,
+                SCR_ENCHANT_ARMOR, WAN_MAGIC_MISSILE, WAN_LIGHT,
+                RING_MAIL, HELMET, LEATHER_GLOVES, FOOD_RATION
+            };
+            int n = SIZE(bonus_pool);
+            for (i = 0; i < 3; i++) {
+                struct obj *otmp = mksobj(bonus_pool[rn2(n)], TRUE, FALSE);
+                if (!otmp)
+                    continue;
+                /* occasional enchantment */
+                if (rn2(3) == 0 && (otmp->oclass == WEAPON_CLASS
+                                   || otmp->oclass == ARMOR_CLASS))
+                    otmp->spe = 1 + rn2(3);
+                if (rn2(5) == 0)
+                    bless(otmp);
+                (void) hold_another_object(otmp, "Oops!  %s out of your grasp!",
+                                           The(aobjnam(otmp, "slip")),
+                                           (const char *) 0);
+            }
+        }
+        pline("Fate deals you a random hand...");
+    }
 }
 
 /* side effects of starting inventory (e.g. discovering it) and skills (both
@@ -1416,5 +1454,86 @@ u_init_skills_discoveries(void)
 #undef UNDEF_TYP
 #undef UNDEF_SPE
 #undef UNDEF_BLESS
+
+
+/* After arriving on a new dungeon floor (not dlvl 1), offer a choice of
+   5 random items and let the hero pick 2.  Encourages varied builds. */
+void
+offer_floor_loot(void)
+{
+    winid win;
+    menu_item *picks = (menu_item *) 0;
+    anything any;
+    int i, n, chosen = 0;
+    struct obj *choices[5];
+    char buf[BUFSZ];
+    static const int pool[] = {
+        ROCK, DART, DAGGER, SHORT_SWORD, CLUB, SPEAR, AXE,
+        LEATHER_ARMOR, RING_MAIL, SMALL_SHIELD, HELMET, LEATHER_GLOVES,
+        ELVEN_CLOAK, ROBE, FOOD_RATION, CRAM_RATION, APPLE,
+        POT_HEALING, POT_EXTRA_HEALING, POT_GAIN_ABILITY,
+        SCR_ENCHANT_WEAPON, SCR_ENCHANT_ARMOR, SCR_IDENTIFY,
+        WAN_LIGHT, WAN_MAGIC_MISSILE, WAN_DIGGING,
+        RING_OF_PROTECTION, RING_OF_INCREASE_DAMAGE,
+        AMULET_OF_ESP, LUCKSTONE, TOUCHSTONE
+    };
+    int pool_n = (int) SIZE(pool);
+
+    if (u.uz.dlevel <= 1)
+        return; /* no bonus on the first floor */
+
+    for (i = 0; i < 5; i++) {
+        choices[i] = mksobj(pool[rn2(pool_n)], TRUE, FALSE);
+        if (!choices[i])
+            choices[i] = mksobj(ROCK, TRUE, FALSE);
+        if (choices[i] && rn2(4) == 0
+            && (choices[i]->oclass == WEAPON_CLASS
+                || choices[i]->oclass == ARMOR_CLASS))
+            choices[i]->spe = 1 + rn2(3);
+        if (choices[i] && rn2(6) == 0)
+            bless(choices[i]);
+        if (choices[i])
+            choices[i]->dknown = choices[i]->bknown = 1;
+    }
+
+    win = create_nhwindow(NHW_MENU);
+    start_menu(win, MENU_BEHAVE_STANDARD);
+    any = cg.zeroany;
+    add_menu(win, &nul_glyphinfo, &any, 0, 0, ATR_NONE, NO_COLOR,
+             "Pick TWO supplies for this floor:", MENU_ITEMFLAGS_IS_TEXT);
+    for (i = 0; i < 5; i++) {
+        if (!choices[i])
+            continue;
+        any = cg.zeroany;
+        any.a_int = i + 1;
+        Sprintf(buf, "%s", doname(choices[i]));
+        add_menu(win, &nul_glyphinfo, &any, 0, 0, ATR_NONE, NO_COLOR,
+                 buf, MENU_ITEMFLAGS_NONE);
+    }
+    end_menu(win, "Floor supplies — choose 2");
+    n = select_menu(win, PICK_ANY, &picks);
+    destroy_nhwindow(win);
+
+    if (n > 0) {
+        for (i = 0; i < n && chosen < 2; i++) {
+            int idx = picks[i].item.a_int - 1;
+            if (idx < 0 || idx >= 5 || !choices[idx])
+                continue;
+            (void) hold_another_object(choices[idx],
+                                       "Oops!  %s out of your grasp!",
+                                       The(aobjnam(choices[idx], "slip")),
+                                       (const char *) 0);
+            choices[idx] = 0;
+            chosen++;
+        }
+        free((genericptr_t) picks);
+    }
+    for (i = 0; i < 5; i++) {
+        if (choices[i])
+            obfree(choices[i], (struct obj *) 0);
+    }
+    if (chosen)
+        pline("You stow your chosen supplies.");
+}
 
 /*u_init.c*/

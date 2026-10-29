@@ -4716,12 +4716,41 @@ there_cmd_menu_common(
     int *act UNUSED)
 {
     int K = 0;
+    struct monst *mtmp;
+    struct obj *otmp;
+    struct trap *ttmp;
+    char buf[BUFSZ];
 
     if (mod & (CLICK_1 | CLICK_2)) { /* ignore iflags.clicklook here */
         /* for self, only include "look at map symbol" if it isn't the
            ordinary hero symbol (steed, invisible w/o see invisible, ?) */
         if (!u_at(x, y) || Upolyd || glyph_at(x, y) != hero_glyph)
             mcmd_addmenu(win, MCMD_LOOK_AT, "Look at map symbol"), ++K;
+    }
+
+    /* Right-click: always offer a clear "what's on this tile" summary entry */
+    if (mod & CLICK_2) {
+        mtmp = m_at(x, y);
+        if (mtmp && canseemon(mtmp)) {
+            Sprintf(buf, "Examine %s", mon_nam(mtmp));
+            mcmd_addmenu(win, MCMD_LOOK_AT, buf), ++K;
+        }
+        for (otmp = svl.level.objects[x][y]; otmp; otmp = otmp->nexthere) {
+            if (otmp->where != OBJ_FLOOR)
+                continue;
+            Sprintf(buf, "Inspect %s", doname(otmp));
+            mcmd_addmenu(win, MCMD_LOOK_AT, buf), ++K;
+            if (K > 12) /* avoid menu spam on piles */
+                break;
+        }
+        ttmp = t_at(x, y);
+        if (ttmp && ttmp->tseen) {
+            Sprintf(buf, "Inspect %s", defsyms[trap_to_defsym(ttmp->ttyp)].explanation);
+            mcmd_addmenu(win, MCMD_LOOK_AT, buf), ++K;
+        }
+        if (!mtmp && !svl.level.objects[x][y] && !(ttmp && ttmp->tseen)) {
+            mcmd_addmenu(win, MCMD_LOOK_AT, "What's on this tile?"), ++K;
+        }
     }
     return K;
 }

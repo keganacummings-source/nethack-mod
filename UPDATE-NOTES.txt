@@ -1,0 +1,33 @@
+UPDATE NOTES (combat numbers / HP / right-click / floor loot / Random)
+===============================================================
+
+1) Floating combat numbers
+   - Now use a timer so they rise and disappear (~1.2s), not stick forever
+   - Pixel-ish Terminal font with black outline so they fit the tile style
+
+2) HP bars
+   - Only show when the monster is hurt (full HP = no bar clutter)
+   - Black 1px border + dark track + green/yellow/red fill
+
+3) Right-click tile menu
+   - Always shows the actions menu
+   - Lists monsters / objects / traps on that tile ("Examine …", "Inspect …")
+
+4) Floor supplies (pick 2 of 5)
+   - Function: offer_floor_loot() in src/u_init.c
+   - Call it once after arriving on a new floor.  Suggested hook in
+     src/do.c inside goto_level(), after the level is fully ready, e.g.:
+
+       if (u.uz.dlevel > 1)
+           offer_floor_loot();
+
+   - Add prototype to include/extern.h:
+       void offer_floor_loot(void);
+
+5) "Random" class
+   - Not a separate role table entry (that needs quest data / PM_*).
+   - Instead: name your character **Random** at start.
+   - Stats are scrambled to 6–18 each, and you get 3 extra random toys
+     (rock through enchanted gear).
+
+Rebuild after copying files.
