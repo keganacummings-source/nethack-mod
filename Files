@@ -53,7 +53,7 @@ cmdhelp       data.base     dungeon.lua   earth.lua     engrave.txt
 epitaph.txt   fakewiz1.lua  fakewiz2.lua  fire.lua      hellfill.lua
 help          hh            history       juiblex.lua   keyhelp
 knox.lua      license       luahelper     medusa-1.lua  medusa-2.lua
-medusa-3.lua  medusa-4.lua  minefill.lua  wildfill.lua  minend-1.lua  minend-2.lua
+medusa-3.lua  medusa-4.lua  minefill.lua  minend-1.lua  minend-2.lua
 minend-3.lua  minetn-1.lua  minetn-2.lua  minetn-3.lua  minetn-4.lua
 minetn-5.lua  minetn-6.lua  minetn-7.lua  nhcore.lua    nhlib.lua
 opthelp       optmenu       oracle.lua    oracles.txt   orcus.lua

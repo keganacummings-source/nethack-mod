@@ -19,7 +19,7 @@ OPTIONS=travel
 
 
 # ======================= LOOK & FEEL (dreamdaw) =======================
-OPTIONS=map_mode:tiles_fit_to_screen,scroll_margin:8
+OPTIONS=map_mode:ascii_fit_to_screen,scroll_margin:8
 OPTIONS=!splash_screen
 
 # Pixel / retro fonts: VT323 is recommended.
@@ -113,44 +113,45 @@ OPTIONS=hilite_status:characteristics/up/green/down/red
 # Or run setup-assets.bat after copying this pack next to NetHackW.exe — it writes
 # absolute paths into a snippet you can paste.
 #
-# Until paths are fixed, leave these COMMENTED so the game does not spam errors:
+# Tiles are OFF (ascii map). Sound: the game looks for the WAV files in the
+# "sounds" folder next to NetHackW.exe, so no SOUNDDIR line is needed.
 
 #OPTIONS=tile_file:tiles.bmp,tile_width:32,tile_height:32
 #SOUNDDIR=sounds
-#SOUND=MESG "This door is locked." "lock.wav" 100
-#SOUND=MESG "The door resists!" "door_resist.wav" 100
-#SOUND=MESG "The door opens." "door_open.wav" 100
-#SOUND=MESG "You hear a door open." "door_open.wav" 50
-#SOUND=MESG "The door closes." "door_close.wav" 100
-#SOUND=MESG "it crashes open" "door_crash.wav" 100
-#SOUND=MESG "The door crashes open" "door_crash.wav" 100
-#SOUND=MESG "The door splinters!" "door_crash.wav" 100
-#SOUND=MESG "WHAMMM!!!" "wham.wav" 100
-#SOUND=MESG "THUD!" "thud.wav" 100
-#SOUND=MESG "Klunk!" "metal.wav" 100
-#SOUND=MESG "You finish eating" "eat.wav" 100
-#SOUND=MESG "You are beginning to feel hungry." "hungry.wav" 50
-#SOUND=MESG "You are beginning to feel weak." "hungry.wav" 75
-#SOUND=MESG "needs food, badly!" "hungry.wav" 100
-#SOUND=MESG "You die." "death.wav" 100
-#SOUND=MESG "You die " "death.wav" 100
-#SOUND=MESG "hits!" "hit.wav" 40
-#SOUND=MESG "hit!" "hit.wav" 40
-#SOUND=MESG "misses" "miss.wav" 25
-#SOUND=MESG "You kill " "kill.wav" 80
-#SOUND=MESG "is killed!" "kill.wav" 80
-#SOUND=MESG "You hear " "ambient.wav" 20
-#SOUND=MESG "Welcome to experience level" "levelup.wav" 100
-#SOUND=MESG "You feel lucky!" "lucky.wav" 80
-#SOUND=MESG "You feel deathly cold." "cold.wav" 80
-#SOUND=MESG "picks up" "pickup.wav" 30
-#SOUND=MESG "drops" "drop.wav" 30
-#SOUND=MESG "You sit down." "sit.wav" 50
-#SOUND=MESG "zaps" "zap.wav" 60
-#SOUND=MESG "You zap" "zap.wav" 60
-#SOUND=MESG "The spell fails" "fizzle.wav" 70
-#SOUND=MESG "burns" "fire.wav" 50
-#SOUND=MESG "You fall into a pit!" "fall.wav" 100
-#SOUND=MESG "A trap door opens" "trap.wav" 80
-#SOUND=MESG "A trap door in the ceiling opens" "trap.wav" 80
-#SOUND=MESG "Click! You trigger a" "trap.wav" 80
+SOUND=MESG "This door is locked." "lock.wav" 100
+SOUND=MESG "The door resists!" "door_resist.wav" 100
+SOUND=MESG "The door opens." "door_open.wav" 100
+SOUND=MESG "You hear a door open." "door_open.wav" 50
+SOUND=MESG "The door closes." "door_close.wav" 100
+SOUND=MESG "it crashes open" "door_crash.wav" 100
+SOUND=MESG "The door crashes open" "door_crash.wav" 100
+SOUND=MESG "The door splinters!" "door_crash.wav" 100
+SOUND=MESG "WHAMMM!!!" "wham.wav" 100
+SOUND=MESG "THUD!" "thud.wav" 100
+SOUND=MESG "Klunk!" "metal.wav" 100
+SOUND=MESG "You finish eating" "eat.wav" 100
+SOUND=MESG "You are beginning to feel hungry." "hungry.wav" 50
+SOUND=MESG "You are beginning to feel weak." "hungry.wav" 75
+SOUND=MESG "needs food, badly!" "hungry.wav" 100
+SOUND=MESG "You die." "death.wav" 100
+SOUND=MESG "You die " "death.wav" 100
+SOUND=MESG "hits!" "hit.wav" 40
+SOUND=MESG "hit!" "hit.wav" 40
+SOUND=MESG "misses" "miss.wav" 25
+SOUND=MESG "You kill " "kill.wav" 80
+SOUND=MESG "is killed!" "kill.wav" 80
+SOUND=MESG "You hear " "ambient.wav" 20
+SOUND=MESG "Welcome to experience level" "levelup.wav" 100
+SOUND=MESG "You feel lucky!" "lucky.wav" 80
+SOUND=MESG "You feel deathly cold." "cold.wav" 80
+SOUND=MESG "picks up" "pickup.wav" 30
+SOUND=MESG "drops" "drop.wav" 30
+SOUND=MESG "You sit down." "sit.wav" 50
+SOUND=MESG "zaps" "zap.wav" 60
+SOUND=MESG "You zap" "zap.wav" 60
+SOUND=MESG "The spell fails" "fizzle.wav" 70
+SOUND=MESG "burns" "fire.wav" 50
+SOUND=MESG "You fall into a pit!" "fall.wav" 100
+SOUND=MESG "A trap door opens" "trap.wav" 80
+SOUND=MESG "A trap door in the ceiling opens" "trap.wav" 80
+SOUND=MESG "Click! You trigger a" "trap.wav" 80

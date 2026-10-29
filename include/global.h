@@ -387,18 +387,8 @@ extern struct nomakedefs_s nomakedefs;
  */
 
 /* size of terminal screen is (at least) (ROWNO+3) by COLNO */
-/* OPENWORLD: a much larger map so wilderness levels can sprawl; the
-   Windows GUI map window scrolls to follow the hero.  Comment out the
-   next line to get the classic 80x21 map back (also see dat/dungeon.lua
-   lvlfill for the Dungeons of Doom). */
-#define OPENWORLD
-#ifdef OPENWORLD
-#define COLNO 200
-#define ROWNO 60
-#else
 #define COLNO 80
 #define ROWNO 21
-#endif
 
 #define MAXNROFROOMS 40 /* max number of rooms per level */
 #define MAX_SUBROOMS 24 /* max # of subrooms in a given room */

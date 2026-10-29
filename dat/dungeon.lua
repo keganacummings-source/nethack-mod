@@ -11,9 +11,6 @@ dungeon = {
       range = 5,
       alignment = "unaligned",
       themerooms = "themerms.lua",
-      -- Open World: ordinary levels are generated as wilderness (dat/wildfill.lua).
-      -- Delete this line (and undef OPENWORLD in include/global.h) for classic rooms.
-      lvlfill = "wildfill",
       branches = {
          {
             name = "The Gnomish Mines",

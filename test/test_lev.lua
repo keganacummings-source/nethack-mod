@@ -40,7 +40,6 @@ local special_levels = {
 "medusa-3",
 "medusa-4",
 "minefill",
-"wildfill",
 "minend-1",
 "minend-2",
 "minend-3",

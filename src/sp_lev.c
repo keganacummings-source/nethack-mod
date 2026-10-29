@@ -6466,13 +6466,7 @@ boolean
 load_special(const char *name)
 {
     boolean result = FALSE;
-#ifdef OPENWORLD
-    /* wilderness levels loop over a 200x60 map several times; the classic
-       1M instruction / 1MB budget is far too small for that */
-    nhl_sandbox_info sbi = {NHL_SB_SAFE, 64*1024*1024, 0, 200*1024*1024};
-#else
     nhl_sandbox_info sbi = {NHL_SB_SAFE, 1*1024*1024, 0, 1*1024*1024};
-#endif
 
     create_des_coder();
 
