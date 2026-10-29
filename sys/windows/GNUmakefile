@@ -426,7 +426,7 @@ LUALIST = air Arc-fila Arc-filb Arc-goal Arc-loca Arc-strt \
 	Cav-strt dungeon earth fakewiz1 fakewiz2 fire \
 	Hea-fila Hea-filb Hea-goal Hea-loca Hea-strt hellfill \
 	juiblex Kni-fila Kni-filb Kni-goal Kni-loca Kni-strt \
-	knox medusa-1 medusa-2 medusa-3 medusa-4 minefill \
+	knox medusa-1 medusa-2 medusa-3 medusa-4 minefill wildfill \
 	minend-1 minend-2 minend-3 minetn-1 minetn-2 minetn-3 \
 	minetn-4 minetn-5 minetn-6 minetn-7 Mon-fila Mon-filb \
 	Mon-goal Mon-loca Mon-strt nhcore nhlib oracle \

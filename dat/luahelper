@@ -26,7 +26,7 @@ AWK=awk
 
 
 luanames = asmodeus baalz bigrm-* castle fakewiz? juiblex knox medusa-? \
-	minend-? minefill minetn-? oracle orcus sanctum soko?-? tower? \
+	minend-? minefill wildfill minetn-? oracle orcus sanctum soko?-? tower? \
 	valley wizard? nhcore nhlib themerms astral air earth fire water \
 	hellfill tut-? ???-goal ???-fil? ???-loca ???-strt \
 	dungeon quest
