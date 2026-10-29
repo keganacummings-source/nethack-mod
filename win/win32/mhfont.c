@@ -16,7 +16,42 @@ static int font_table_size = 0;
 
 #define NHFONT_CODE(win, attr) (((attr & 0xFF) << 8) | (win_type & 0xFF))
 
-static void __cdecl font_table_cleanup(void);
+/* Prefer VT323 if available, else Consolas, else system monospace.
+   Used when no explicit font is set, or as fallback. */
+static int CALLBACK
+font_enum_proc(const LOGFONT *lf, const TEXTMETRIC *tm, DWORD type, LPARAM lparam)
+{
+    int *found = (int *) lparam;
+    *found = 1;
+    return 0; /* stop enumeration */
+}
+
+static void
+prefer_monospace_font(LOGFONT *lgfnt)
+{
+    static const char *const prefs[] = { "VT323", "Consolas", "Lucida Console", "Courier New", NULL };
+    int i;
+    HDC hdc = GetDC(NULL);
+    if (!hdc)
+        return;
+
+    for (i = 0; prefs[i]; ++i) {
+        LOGFONT lf;
+        int found = 0;
+        ZeroMemory(&lf, sizeof(lf));
+        NH_A2W(prefs[i], lf.lfFaceName, LF_FACESIZE);
+        lf.lfCharSet = lgfnt->lfCharSet;
+        EnumFontFamiliesEx(hdc, &lf, font_enum_proc, (LPARAM) &found, 0);
+        if (found) {
+            NH_A2W(prefs[i], lgfnt->lfFaceName, LF_FACESIZE);
+            lgfnt->lfPitchAndFamily = FIXED_PITCH | FF_MODERN;
+            ReleaseDC(NULL, hdc);
+            return;
+        }
+    }
+    ReleaseDC(NULL, hdc);
+    /* leave as-is (system default) */
+}
 
 HFONT
 mswin_create_splashfont(HWND hWnd)
@@ -104,6 +139,7 @@ mswin_get_font(int win_type, int attr, HDC hdc, BOOL replace)
             NH_A2W(iflags.wc_font_status, lgfnt.lfFaceName, LF_FACESIZE);
         } else {
             lgfnt.lfPitchAndFamily = FIXED_PITCH; // pitch and family
+            prefer_monospace_font(&lgfnt);
         }
         break;
 
@@ -131,6 +167,7 @@ mswin_get_font(int win_type, int attr, HDC hdc, BOOL replace)
             NH_A2W(iflags.wc_font_menu, lgfnt.lfFaceName, LF_FACESIZE);
         } else {
             lgfnt.lfPitchAndFamily = FIXED_PITCH; // pitch and family
+            prefer_monospace_font(&lgfnt);
         }
         break;
 
@@ -159,6 +196,7 @@ mswin_get_font(int win_type, int attr, HDC hdc, BOOL replace)
             NH_A2W(iflags.wc_font_message, lgfnt.lfFaceName, LF_FACESIZE);
         } else {
             lgfnt.lfPitchAndFamily = VARIABLE_PITCH; // pitch and family
+            prefer_monospace_font(&lgfnt);
         }
         break;
 
@@ -186,6 +224,7 @@ mswin_get_font(int win_type, int attr, HDC hdc, BOOL replace)
             NH_A2W(iflags.wc_font_text, lgfnt.lfFaceName, LF_FACESIZE);
         } else {
             lgfnt.lfPitchAndFamily = FIXED_PITCH; // pitch and family
+            prefer_monospace_font(&lgfnt);
         }
         break;
     }

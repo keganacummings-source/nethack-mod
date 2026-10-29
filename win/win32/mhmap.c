@@ -18,7 +18,7 @@
 #endif
 
 #define NHMAP_FONT_NAME TEXT("Terminal")
-#define NHMAP_TTFONT_NAME TEXT("Consolas")
+#define NHMAP_TTFONT_NAME TEXT("VT323")  /* prefer VT323; falls back via system or Consolas */
 #define MAXWINDOWTEXT 255
 
 #define CURSOR_BLINK_INTERVAL 1000 // milliseconds

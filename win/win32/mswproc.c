@@ -2237,23 +2237,39 @@ initMapTiles(void)
     int tl_num;
     SIZE map_size;
     extern int total_tiles_used;
+    char resolved[MAX_PATH];
+    const char *tilepath = iflags.wc_tile_file;
+    char *exedir = 0;
 
-    /* no file - no tile */
-    if (!(iflags.wc_tile_file && *iflags.wc_tile_file))
+    /* Resolve relative tile_file (or default tiles.bmp) next to the exe.
+       This avoids cwd-dependent failures from shortcuts / launchers. */
+    if (!tilepath || !*tilepath)
+        tilepath = "tiles.bmp";
+
+    /* Ensure exe path is known */
+    if (!windows_exepath())
+        (void) get_executable_path();
+    exedir = windows_exepath();
+
+    resolved[0] = '\0';
+    if (exedir && tilepath && *tilepath
+        && !strchr(tilepath, ':') && tilepath[0] != '\\' && tilepath[0] != '/') {
+        /* relative path -> <exe_dir>\<tilepath> */
+        Snprintf(resolved, sizeof resolved, "%s\\%s", exedir, tilepath);
+        tilepath = resolved;
+    }
+
+    /* no file - no tile (after resolution attempt) */
+    if (!(tilepath && *tilepath))
         return TRUE;
 
     /* load bitmap */
     hBmp = LoadImage(GetNHApp()->hApp,
-                     NH_A2W(iflags.wc_tile_file, wbuf, MAX_PATH),
+                     NH_A2W(tilepath, wbuf, MAX_PATH),
                      IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
     if (hBmp == NULL) {
-        char errmsg[BUFSZ];
-
-        errcode = GetLastError();
-        Sprintf(errmsg, "%s (0x%lx).",
-            "Cannot load tiles from the file. Reverting back to default",
-            errcode);
-        raw_print(errmsg);
+        /* Silent fallback to embedded tiles; no error popup.
+           (User can still set an absolute path in config if desired.) */
         return FALSE;
     }
 
@@ -2262,8 +2278,7 @@ initMapTiles(void)
     if (bm.bmWidth % iflags.wc_tile_width
         || bm.bmHeight % iflags.wc_tile_height) {
         DeleteObject(hBmp);
-        raw_print("Tiles bitmap does not match tile_width and tile_height "
-                  "options. Reverting back to default.");
+        /* silent revert */
         return FALSE;
     }
 
@@ -2271,8 +2286,7 @@ initMapTiles(void)
              * (bm.bmHeight / iflags.wc_tile_height);
     if (tl_num < total_tiles_used) {
         DeleteObject(hBmp);
-        raw_print("Number of tiles in the bitmap is less than required by "
-                  "the game. Reverting back to default.");
+        /* silent revert */
         return FALSE;
     }
 
