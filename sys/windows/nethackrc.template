@@ -1,0 +1,105 @@
+# NetHack 5.0 -- "Modern + Mouse" default config for the Windows GUI
+# Delete or edit any line to taste. '#' starts a comment.
+
+# ======================= MOUSE =======================
+# LEFT click on the map   = walk / travel / open door / attack, automatically
+# RIGHT click on a tile   = dropdown menu of what you can do there:
+#                           - on yourself: pick up, stairs, eat, quaff, read, apply,
+#                             wield, wear, zap, throw, inventory, options, ...
+#                           - next to you: open/close/kick door, attack, talk,
+#                             throw, fire, search, move there, ...
+#                           - far away:    travel here, look at it, throw/fire at it
+# (these are the built-in defaults of this build; mouse_support must stay on)
+OPTIONS=mouse_support:1
+OPTIONS=travel
+
+# ======================= LOOK & FEEL =======================
+# Scales the map to the window instead of a fixed pixel size.
+# Prefer crisp fixed tiles?  Use map_mode:tiles  (and tile_width/tile_height)
+OPTIONS=map_mode:tiles_fit_to_screen,scroll_margin:8
+OPTIONS=!splash_screen
+
+# Clean sans-serif UI fonts (Windows ships with Segoe UI and Consolas)
+OPTIONS=font_message:Segoe UI,font_size_message:15,align_message:top
+OPTIONS=font_menu:Segoe UI,font_size_menu:15
+OPTIONS=font_text:Consolas,font_size_text:15
+OPTIONS=font_status:Consolas,font_size_status:15
+
+# Dark theme for message / status / text / menu windows
+OPTIONS=windowcolors:status #E4E6EF/#16181D message #E4E6EF/#16181D text #E4E6EF/#1B1D23 menu #E4E6EF/#1B1D23
+
+# Always-visible inventory panel (set to !perm_invent to hide)
+OPTIONS=perm_invent,perminv_mode:all
+
+# Helpful visual feedback while using the mouse
+OPTIONS=autodescribe
+OPTIONS=hilite_pet,hilite_pile
+OPTIONS=lit_corridor,dark_room
+OPTIONS=mention_walls
+OPTIONS=time,showexp,!toptenwin
+
+# ======================= QUALITY OF LIFE =======================
+# number_pad:0 -> keyboard keys are plain (the right-click menu sends e.g. "20s").
+# The numeric keypad still moves you.
+OPTIONS=number_pad:0
+OPTIONS=force_invmenu
+OPTIONS=suppress_alert:3.3.1
+OPTIONS=autopickup,pickup_types:$
+OPTIONS=pickup_thrown
+OPTIONS=autoquiver
+OPTIONS=runmode:run
+OPTIONS=symset:IBMGraphics_2,roguesymset:RogueEpyx
+OPTIONS=boulder:0
+
+# Menu colours (blessed/cursed highlighting)
+OPTIONS=menucolors
+MENUCOLOR=" blessed " = green
+MENUCOLOR=" holy " = green
+MENUCOLOR=" cursed " = red
+MENUCOLOR=" unholy " = red
+MENUCOLOR=" cursed .* \(being worn\)" = orange&underline
+
+# Personal preferences (uncomment & edit)
+#OPTIONS=name:Janet,role:Valkyrie,race:Human,gender:female,align:lawful
+#OPTIONS=dogname:Fido,catname:Morris
+
+# Status hilites
+OPTIONS=statushilites
+# HP
+OPTIONS=hitpointbar
+OPTIONS=hilite_status:hitpoints/100%/gray&normal
+OPTIONS=hilite_status:hitpoints/<100%/green&normal
+OPTIONS=hilite_status:hitpoints/<66%/yellow&normal
+OPTIONS=hilite_status:hitpoints/<50%/orange&normal
+OPTIONS=hilite_status:hitpoints/<33%/red&bold
+OPTIONS=hilite_status:hitpoints/<15%/red&inverse
+
+## Pw
+OPTIONS=hilite_status:power/100%/gray&normal
+OPTIONS=hilite_status:power/<100%/green&normal
+OPTIONS=hilite_status:power/<66%/yellow&normal
+OPTIONS=hilite_status:power/<50%/orange&normal
+OPTIONS=hilite_status:power/<33%/red&bold
+
+## Carry
+OPTIONS=hilite_status:cap/burdened/yellow/stressed/orange/strained/red&bold/overtaxed/red&inverse/overloaded/red&inverse&blink
+
+## Hunger
+OPTIONS=hilite_status:hunger/satiated/yellow/hungry/orange/weak/red&bold/fainting/red&inverse/fainted/red&inverse&blink
+
+## Mental
+OPTIONS=hilite_status:condition/hallu/yellow
+OPTIONS=hilite_status:condition/conf/orange
+OPTIONS=hilite_status:condition/stun/red&bold
+
+## Health
+OPTIONS=hilite_status:condition/termill/red&inverse
+OPTIONS=hilite_status:condition/foodpois/red&inverse
+OPTIONS=hilite_status:condition/slime/red&inverse
+
+# gold
+OPTIONS=hilite_status:gold/up/yellow/down/brown
+
+# St, Dx, Co, In, Wi, Ch
+OPTIONS=hilite_status:characteristics/up/green/down/red
+

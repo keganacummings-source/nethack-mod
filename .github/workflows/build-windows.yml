@@ -1,0 +1,23 @@
+# Builds the Windows GUI (NetHackW.exe) in the cloud -- no local compiler needed.
+# Push this folder to a GitHub repo, open the Actions tab, run
+# "Build NetHack Windows", then download the artifact.
+name: Build NetHack Windows
+on:
+  workflow_dispatch:
+  push:
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: microsoft/setup-msbuild@v2
+      - name: Build (Release x64)
+        working-directory: sys/windows/vs
+        run: msbuild NetHack.sln /t:Build /p:Configuration=Release /p:Platform=x64 /m
+      - name: Show output
+        shell: pwsh
+        run: Get-ChildItem -Recurse binary | Select-Object -First 60 FullName
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NetHack-modern-mouse-win-x64
+          path: binary/Release/x64
