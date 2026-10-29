@@ -810,14 +810,14 @@ u_init_role(void)
      * skew the results if we use rn2(2)...  --KAA
      */
     case PM_ARCHEOLOGIST:
-        if (urole.name.m && !strcmp(urole.name.m, "Geomancer")) {
+        if (gu.urole.name.m && !strcmp(gu.urole.name.m, "Geomancer")) {
             ini_inv(Geomancer_inv);
             knows_object(PICK_AXE, FALSE);
             knows_object(TOUCHSTONE, FALSE);
             knows_class(GEM_CLASS);
             break;
         }
-        if (urole.name.m && !strcmp(urole.name.m, "Runesmith")) {
+        if (gu.urole.name.m && !strcmp(gu.urole.name.m, "Runesmith")) {
             ini_inv(Runesmith_inv);
             knows_class(SCROLL_CLASS);
             break;
@@ -835,7 +835,7 @@ u_init_role(void)
                                           * in pauper_reinit() */
         break;
     case PM_BARBARIAN:
-        if (urole.name.m && !strcmp(urole.name.m, "Berserker")) {
+        if (gu.urole.name.m && !strcmp(gu.urole.name.m, "Berserker")) {
             ini_inv(Berserker_inv);
             knows_class(WEAPON_CLASS);
             break;
@@ -854,7 +854,7 @@ u_init_role(void)
         ini_inv(Cave_man);
         break;
     case PM_HEALER:
-        if (urole.name.m && !strcmp(urole.name.m, "Alchemist")) {
+        if (gu.urole.name.m && !strcmp(gu.urole.name.m, "Alchemist")) {
             u.umoney0 = rn1(300, 200);
             ini_inv(Alchemist_inv);
             knows_object(POT_HEALING, FALSE);
@@ -864,7 +864,7 @@ u_init_role(void)
             knows_class(POTION_CLASS);
             break;
         }
-        if (urole.name.m && !strcmp(urole.name.m, "Plague Doctor")) {
+        if (gu.urole.name.m && !strcmp(gu.urole.name.m, "Plague Doctor")) {
             ini_inv(PlagueDoctor_inv);
             knows_class(POTION_CLASS);
             knows_object(POT_SICKNESS, FALSE);
@@ -877,7 +877,7 @@ u_init_role(void)
         knows_object(POT_FULL_HEALING, FALSE);
         break;
     case PM_KNIGHT:
-        if (urole.name.m && !strcmp(urole.name.m, "Templar")) {
+        if (gu.urole.name.m && !strcmp(gu.urole.name.m, "Templar")) {
             ini_inv(Templar_inv);
             knows_class(WEAPON_CLASS);
             knows_class(ARMOR_CLASS);
@@ -922,13 +922,13 @@ u_init_role(void)
          */
         break;
     case PM_RANGER:
-        if (urole.name.m && !strcmp(urole.name.m, "Warden")) {
+        if (gu.urole.name.m && !strcmp(gu.urole.name.m, "Warden")) {
             ini_inv(Warden_inv);
             knows_class(WEAPON_CLASS);
             knows_class(ARMOR_CLASS);
             break;
         }
-        if (urole.name.m && !strcmp(urole.name.m, "Beastmaster")) {
+        if (gu.urole.name.m && !strcmp(gu.urole.name.m, "Beastmaster")) {
             ini_inv(Beastmaster_inv);
             knows_object(LEASH, FALSE);
             break;
@@ -937,19 +937,19 @@ u_init_role(void)
         knows_class(WEAPON_CLASS); /* bows, arrows, spears only */
         break;
     case PM_ROGUE:
-        if (urole.name.m && !strcmp(urole.name.m, "Corsair")) {
+        if (gu.urole.name.m && !strcmp(gu.urole.name.m, "Corsair")) {
             u.umoney0 = rn1(400, 200);
             ini_inv(Corsair_inv);
             knows_class(WEAPON_CLASS);
             knows_object(SACK, FALSE);
             break;
         }
-        if (urole.name.m && !strcmp(urole.name.m, "Duelist")) {
+        if (gu.urole.name.m && !strcmp(gu.urole.name.m, "Duelist")) {
             ini_inv(Duelist_inv);
             knows_class(WEAPON_CLASS);
             break;
         }
-        if (urole.name.m && !strcmp(urole.name.m, "Shade")) {
+        if (gu.urole.name.m && !strcmp(gu.urole.name.m, "Shade")) {
             ini_inv(Shade_inv);
             knows_class(WEAPON_CLASS);
             knows_object(LOCK_PICK, FALSE);
@@ -983,7 +983,7 @@ u_init_role(void)
         break;
     case PM_TOURIST:
         /* Random class reuses PM_TOURIST body; distinguish by role name */
-        if (urole.name.m && !strcmp(urole.name.m, "Random")) {
+        if (gu.urole.name.m && !strcmp(gu.urole.name.m, "Random")) {
             static const int rnd_pool[] = {
                 ROCK, DART, DAGGER, SHORT_SWORD, CLUB, SPEAR, AXE,
                 LEATHER_ARMOR, RING_MAIL, SMALL_SHIELD, HELMET,
@@ -1034,17 +1034,17 @@ u_init_role(void)
         knows_class(ARMOR_CLASS);
         break;
     case PM_WIZARD:
-        if (urole.name.m && !strcmp(urole.name.m, "Hexer")) {
+        if (gu.urole.name.m && !strcmp(gu.urole.name.m, "Hexer")) {
             ini_inv(Hexer_inv);
             knows_class(SPBOOK_CLASS);
             break;
         }
-        if (urole.name.m && !strcmp(urole.name.m, "Artificer")) {
+        if (gu.urole.name.m && !strcmp(gu.urole.name.m, "Artificer")) {
             ini_inv(Artificer_inv);
             knows_class(WAND_CLASS);
             break;
         }
-        if (urole.name.m && !strcmp(urole.name.m, "Stormcaller")) {
+        if (gu.urole.name.m && !strcmp(gu.urole.name.m, "Stormcaller")) {
             ini_inv(Stormcaller_inv);
             knows_class(SPBOOK_CLASS);
             break;
@@ -1169,7 +1169,7 @@ pauper_reinit(void)
         preknown = SPE_HEALING;
         break;
     case PM_CLERIC:
-        if (urole.name.m && !strcmp(urole.name.m, "Oracle")) {
+        if (gu.urole.name.m && !strcmp(gu.urole.name.m, "Oracle")) {
             ini_inv(Oracle_inv);
             knows_class(SPBOOK_CLASS);
             knows_class(SCROLL_CLASS);
@@ -1673,7 +1673,7 @@ u_init_inventory_attrs(void)
     init_attr(75);    /* init attribute values */
     vary_init_attr(); /* minor variation to attrs */
     /* Random class: scramble level-1 attributes into a playable band */
-    if (urole.name.m && !strcmp(urole.name.m, "Random")) {
+    if (gu.urole.name.m && !strcmp(gu.urole.name.m, "Random")) {
         int ai;
         for (ai = 0; ai < A_MAX; ai++) {
             ABASE(ai) = 6 + rn2(13); /* 6..18 */

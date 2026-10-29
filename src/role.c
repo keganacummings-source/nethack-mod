@@ -664,7 +664,7 @@ const struct Role roles[NUM_ROLES+1] = {
       2,
       10,
       A_INT,
-      SPE_CANCEL,
+      SPE_CANCELLATION,
       -4 },
 
     /* HEXER — curses, hexes, attrition magic */
