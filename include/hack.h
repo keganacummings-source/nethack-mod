@@ -766,7 +766,7 @@ struct rogueroom {
     int nroom; /* Only meaningful for "real" rooms */
 };
 
-#define NUM_ROLES (19)
+#define NUM_ROLES (29)
 /* role index of the "Random" class (last real role) */
 #define ROLE_RANDOM 13  /* "Random" class index */
 struct role_filter {

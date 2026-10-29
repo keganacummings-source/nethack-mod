@@ -1,0 +1,18 @@
+TEN MORE CLASSES — lore & playstyle
+===================================
+
+6) BEASTMASTER — tame and fight with companions; leash, tripe, charm monster
+7) ARTIFICER — wands, charging, devices; gadget toolkit
+8) DUELIST — silver saber finesse + haste; single-combat focus
+9) ORACLE — detect monsters/treasure, clairvoyance, identify scrolls
+10) BERSERKER — battle-axe aggression, minimal gear, max raw power
+11) SHADE — daggers, lock pick, displacement cloak, invisibility
+12) RUNESMITH — identify spell, enchant scrolls, magic marker
+13) PLAGUE DOCTOR — sickness pots, healing, cure sickness
+14) TEMPLAR — blessed long sword, shield, turn undead, holy water
+15) STORMCALLER — force bolt, cone of cold, lightning wand
+
+Previously added: Random, Alchemist, Hexer, Corsair, Geomancer, Warden
+
+NUM_ROLES is now 29 (13 classic + Random + 15 custom).
+Select any from the role list after rebuild.

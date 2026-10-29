@@ -240,6 +240,101 @@ static const struct trobj Warden_inv[] = {
     { 0, 0, 0, 0, 0, 0 }
 };
 
+/* ---- Batch 2 custom class kits ---- */
+static const struct trobj Beastmaster_inv[] = {
+    { LEASH, 0, TOOL_CLASS, 1, 1, 0 },
+    { TRIPE_RATION, 0, FOOD_CLASS, 5, 5, 0 },
+    { CLUB, 0, WEAPON_CLASS, 1, 1, UNDEF_BLESS },
+    { LEATHER_ARMOR, 0, ARMOR_CLASS, 1, 1, UNDEF_BLESS },
+    { SPE_CHARM_MONSTER, 0, SPBOOK_CLASS, 1, 1, 1 },
+    { FOOD_RATION, 0, FOOD_CLASS, 2, 2, 0 },
+    { 0, 0, 0, 0, 0, 0 }
+};
+static const struct trobj Artificer_inv[] = {
+    { WAN_LIGHT, UNDEF_SPE, WAND_CLASS, 1, 1, UNDEF_BLESS },
+    { WAN_DIGGING, UNDEF_SPE, WAND_CLASS, 1, 1, UNDEF_BLESS },
+    { UNDEF_TYP, UNDEF_SPE, WAND_CLASS, 1, 1, UNDEF_BLESS },
+    { SCR_CHARGING, 0, SCROLL_CLASS, 1, 1, UNDEF_BLESS },
+    { SPE_WIZARD_LOCK, 0, SPBOOK_CLASS, 1, 1, 1 },
+    { DAGGER, 0, WEAPON_CLASS, 1, 1, UNDEF_BLESS },
+    { LEATHER_ARMOR, 0, ARMOR_CLASS, 1, 1, UNDEF_BLESS },
+    { FOOD_RATION, 0, FOOD_CLASS, 2, 2, 0 },
+    { 0, 0, 0, 0, 0, 0 }
+};
+static const struct trobj Duelist_inv[] = {
+    { SILVER_SABER, 1, WEAPON_CLASS, 1, 1, UNDEF_BLESS },
+    { SMALL_SHIELD, 0, ARMOR_CLASS, 1, 1, UNDEF_BLESS },
+    { LEATHER_ARMOR, 0, ARMOR_CLASS, 1, 1, UNDEF_BLESS },
+    { SPE_HASTE_SELF, 0, SPBOOK_CLASS, 1, 1, UNDEF_BLESS },
+    { FOOD_RATION, 0, FOOD_CLASS, 2, 2, 0 },
+    { 0, 0, 0, 0, 0, 0 }
+};
+static const struct trobj Oracle_inv[] = {
+    { SPE_DETECT_MONSTERS, 0, SPBOOK_CLASS, 1, 1, 1 },
+    { SPE_DETECT_TREASURE, 0, SPBOOK_CLASS, 1, 1, 1 },
+    { SPE_CLAIRVOYANCE, 0, SPBOOK_CLASS, 1, 1, UNDEF_BLESS },
+    { SCR_IDENTIFY, 0, SCROLL_CLASS, 3, 3, UNDEF_BLESS },
+    { QUARTERSTAFF, 0, WEAPON_CLASS, 1, 1, UNDEF_BLESS },
+    { ROBE, 0, ARMOR_CLASS, 1, 1, UNDEF_BLESS },
+    { FOOD_RATION, 0, FOOD_CLASS, 2, 2, 0 },
+    { 0, 0, 0, 0, 0, 0 }
+};
+static const struct trobj Berserker_inv[] = {
+    { BATTLE_AXE, 0, WEAPON_CLASS, 1, 1, UNDEF_BLESS },
+    { SHORT_SWORD, 0, WEAPON_CLASS, 1, 1, UNDEF_BLESS },
+    { FOOD_RATION, 0, FOOD_CLASS, 3, 3, 0 },
+    { 0, 0, 0, 0, 0, 0 }
+};
+static const struct trobj Shade_inv[] = {
+    { DAGGER, 1, WEAPON_CLASS, 4, 8, UNDEF_BLESS },
+    { LOCK_PICK, 0, TOOL_CLASS, 1, 1, 0 },
+    { CLOAK_OF_DISPLACEMENT, 0, ARMOR_CLASS, 1, 1, UNDEF_BLESS },
+    { SPE_INVISIBILITY, 0, SPBOOK_CLASS, 1, 1, 1 },
+    { FOOD_RATION, 0, FOOD_CLASS, 2, 2, 0 },
+    { 0, 0, 0, 0, 0, 0 }
+};
+static const struct trobj Runesmith_inv[] = {
+    { SPE_IDENTIFY, 0, SPBOOK_CLASS, 1, 1, 1 },
+    { SCR_ENCHANT_WEAPON, 0, SCROLL_CLASS, 2, 2, UNDEF_BLESS },
+    { SCR_ENCHANT_ARMOR, 0, SCROLL_CLASS, 2, 2, UNDEF_BLESS },
+    { SCR_IDENTIFY, 0, SCROLL_CLASS, 2, 2, UNDEF_BLESS },
+    { MAGIC_MARKER, 19, TOOL_CLASS, 1, 1, 0 },
+    { DAGGER, 0, WEAPON_CLASS, 1, 1, UNDEF_BLESS },
+    { LEATHER_ARMOR, 0, ARMOR_CLASS, 1, 1, UNDEF_BLESS },
+    { FOOD_RATION, 0, FOOD_CLASS, 2, 2, 0 },
+    { 0, 0, 0, 0, 0, 0 }
+};
+static const struct trobj PlagueDoctor_inv[] = {
+    { POT_SICKNESS, 0, POTION_CLASS, 3, 3, 0 },
+    { POT_HEALING, 0, POTION_CLASS, 3, 3, UNDEF_BLESS },
+    { POT_EXTRA_HEALING, 0, POTION_CLASS, 2, 2, UNDEF_BLESS },
+    { SPE_CURE_SICKNESS, 0, SPBOOK_CLASS, 1, 1, 1 },
+    { SCALPEL, 0, WEAPON_CLASS, 1, 1, UNDEF_BLESS },
+    { LEATHER_ARMOR, 0, ARMOR_CLASS, 1, 1, UNDEF_BLESS },
+    { FOOD_RATION, 0, FOOD_CLASS, 2, 2, 0 },
+    { 0, 0, 0, 0, 0, 0 }
+};
+static const struct trobj Templar_inv[] = {
+    { LONG_SWORD, 1, WEAPON_CLASS, 1, 1, 1 },
+    { LARGE_SHIELD, 0, ARMOR_CLASS, 1, 1, UNDEF_BLESS },
+    { HELMET, 0, ARMOR_CLASS, 1, 1, UNDEF_BLESS },
+    { RING_MAIL, 0, ARMOR_CLASS, 1, 1, UNDEF_BLESS },
+    { SPE_TURN_UNDEAD, 0, SPBOOK_CLASS, 1, 1, 1 },
+    { POT_WATER, 0, POTION_CLASS, 2, 2, 1 },
+    { FOOD_RATION, 0, FOOD_CLASS, 2, 2, 0 },
+    { 0, 0, 0, 0, 0, 0 }
+};
+static const struct trobj Stormcaller_inv[] = {
+    { SPE_FORCE_BOLT, 0, SPBOOK_CLASS, 1, 1, 1 },
+    { SPE_CONE_OF_COLD, 0, SPBOOK_CLASS, 1, 1, UNDEF_BLESS },
+    { WAN_LIGHTNING, UNDEF_SPE, WAND_CLASS, 1, 1, UNDEF_BLESS },
+    { QUARTERSTAFF, 0, WEAPON_CLASS, 1, 1, UNDEF_BLESS },
+    { CLOAK_OF_MAGIC_RESISTANCE, 0, ARMOR_CLASS, 1, 1, UNDEF_BLESS },
+    { FOOD_RATION, 0, FOOD_CLASS, 2, 2, 0 },
+    { 0, 0, 0, 0, 0, 0 }
+};
+
+
 
 
 /*
@@ -722,6 +817,11 @@ u_init_role(void)
             knows_class(GEM_CLASS);
             break;
         }
+        if (urole.name.m && !strcmp(urole.name.m, "Runesmith")) {
+            ini_inv(Runesmith_inv);
+            knows_class(SCROLL_CLASS);
+            break;
+        }
         ini_inv(Archeologist);
         if (!rn2(10))
             ini_inv(Tinopener);
@@ -735,6 +835,11 @@ u_init_role(void)
                                           * in pauper_reinit() */
         break;
     case PM_BARBARIAN:
+        if (urole.name.m && !strcmp(urole.name.m, "Berserker")) {
+            ini_inv(Berserker_inv);
+            knows_class(WEAPON_CLASS);
+            break;
+        }
         if (rn2(100) >= 50) { /* see above comment */
             ini_inv(Barbarian_0);
         } else {
@@ -759,6 +864,12 @@ u_init_role(void)
             knows_class(POTION_CLASS);
             break;
         }
+        if (urole.name.m && !strcmp(urole.name.m, "Plague Doctor")) {
+            ini_inv(PlagueDoctor_inv);
+            knows_class(POTION_CLASS);
+            knows_object(POT_SICKNESS, FALSE);
+            break;
+        }
         u.umoney0 = rn1(1000, 1001);
         ini_inv(Healer);
         if (!rn2(25))
@@ -766,6 +877,13 @@ u_init_role(void)
         knows_object(POT_FULL_HEALING, FALSE);
         break;
     case PM_KNIGHT:
+        if (urole.name.m && !strcmp(urole.name.m, "Templar")) {
+            ini_inv(Templar_inv);
+            knows_class(WEAPON_CLASS);
+            knows_class(ARMOR_CLASS);
+            HJumping |= FROMOUTSIDE;
+            break;
+        }
         ini_inv(Knight);
         knows_class(WEAPON_CLASS); /* all weapons */
         knows_class(ARMOR_CLASS);
@@ -810,6 +928,11 @@ u_init_role(void)
             knows_class(ARMOR_CLASS);
             break;
         }
+        if (urole.name.m && !strcmp(urole.name.m, "Beastmaster")) {
+            ini_inv(Beastmaster_inv);
+            knows_object(LEASH, FALSE);
+            break;
+        }
         ini_inv(Ranger);
         knows_class(WEAPON_CLASS); /* bows, arrows, spears only */
         break;
@@ -819,6 +942,17 @@ u_init_role(void)
             ini_inv(Corsair_inv);
             knows_class(WEAPON_CLASS);
             knows_object(SACK, FALSE);
+            break;
+        }
+        if (urole.name.m && !strcmp(urole.name.m, "Duelist")) {
+            ini_inv(Duelist_inv);
+            knows_class(WEAPON_CLASS);
+            break;
+        }
+        if (urole.name.m && !strcmp(urole.name.m, "Shade")) {
+            ini_inv(Shade_inv);
+            knows_class(WEAPON_CLASS);
+            knows_object(LOCK_PICK, FALSE);
             break;
         }
         u.umoney0 = 0;
@@ -902,6 +1036,16 @@ u_init_role(void)
     case PM_WIZARD:
         if (urole.name.m && !strcmp(urole.name.m, "Hexer")) {
             ini_inv(Hexer_inv);
+            knows_class(SPBOOK_CLASS);
+            break;
+        }
+        if (urole.name.m && !strcmp(urole.name.m, "Artificer")) {
+            ini_inv(Artificer_inv);
+            knows_class(WAND_CLASS);
+            break;
+        }
+        if (urole.name.m && !strcmp(urole.name.m, "Stormcaller")) {
+            ini_inv(Stormcaller_inv);
             knows_class(SPBOOK_CLASS);
             break;
         }
@@ -1025,6 +1169,12 @@ pauper_reinit(void)
         preknown = SPE_HEALING;
         break;
     case PM_CLERIC:
+        if (urole.name.m && !strcmp(urole.name.m, "Oracle")) {
+            ini_inv(Oracle_inv);
+            knows_class(SPBOOK_CLASS);
+            knows_class(SCROLL_CLASS);
+            break;
+        }
     case PM_KNIGHT:
     case PM_MONK:
         preknown = SPE_PROTECTION;
