@@ -100,6 +100,7 @@
 extern void interject_assistance(int, int, genericptr_t, genericptr_t);
 extern void interject(int);
 extern char *windows_exepath(void);
+extern char *get_executable_path(void);
 
 /*
  *===============================================

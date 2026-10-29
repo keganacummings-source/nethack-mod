@@ -60,7 +60,7 @@ WIN32_FIND_DATA ffd;
 extern int GUILaunched;
 extern boolean getreturn_enabled;
 int redirect_stdout;
-static char *get_executable_path(void);
+char *get_executable_path(void);
 
 
 
