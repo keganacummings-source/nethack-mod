@@ -22,8 +22,11 @@ OPTIONS=travel
 OPTIONS=map_mode:tiles_fit_to_screen,scroll_margin:8
 OPTIONS=!splash_screen
 
-# Pixel / retro fonts (install free "VT323" or "Press Start 2P" for full match)
-# Fallbacks: Consolas, Cascadia Mono, Fixedsys
+# Pixel / retro fonts: VT323 is recommended.
+# INSTALL STEPS: download VT323-Regular.ttf from https://fonts.google.com/specimen/VT323
+# Right-click the .ttf -> "Install for all users", then restart NetHack.
+# If VT323 is not installed the game falls back to Consolas -> Lucida Console -> Courier New.
+# Cascadia Mono and Terminal are also tried automatically if the above are absent.
 OPTIONS=font_message:VT323,font_size_message:18,align_message:top
 OPTIONS=font_menu:VT323,font_size_menu:16
 OPTIONS=font_text:VT323,font_size_text:16

@@ -29,7 +29,7 @@ font_enum_proc(const LOGFONT *lf, const TEXTMETRIC *tm, DWORD type, LPARAM lpara
 static void
 prefer_monospace_font(LOGFONT *lgfnt)
 {
-    static const char *const prefs[] = { "VT323", "Consolas", "Lucida Console", "Courier New", NULL };
+    static const char *const prefs[] = { "VT323", "Consolas", "Lucida Console", "Courier New", "Cascadia Mono", "Terminal", NULL };
     int i;
     HDC hdc = GetDC(NULL);
     if (!hdc)
