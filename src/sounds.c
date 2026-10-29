@@ -1582,8 +1582,26 @@ add_sound_mapping(const char *mapping)
 
         if (!sounddir)
             sounddir = dupstr(".");
+#ifdef WIN32
+        /* On Windows, prefer <exe>\sounds\ for relative sound files.
+           Avoids SOUNDDIR config and cwd issues. */
+        {
+            char *exedir = windows_exepath();
+            if (!exedir) {
+                (void) get_executable_path();
+                exedir = windows_exepath();
+            }
+            if (exedir && (!sounddir || !*sounddir || !strcmp(sounddir, "."))) {
+                char sdir[MAX_PATH];
+                Snprintf(sdir, sizeof sdir, "%s\\sounds", exedir);
+                if (sounddir)
+                    free((genericptr_t) sounddir);
+                sounddir = dupstr(sdir);
+            }
+        }
+#endif
         if (strlen(sounddir) + 1 + strlen(filename) >= sizeof filespec) {
-            raw_print("sound file name too long");
+            /* silent: name too long */
             return 0;
         }
         Snprintf(filespec, sizeof filespec, "%s/%s", sounddir, filename);
@@ -1604,7 +1622,7 @@ add_sound_mapping(const char *mapping)
                 regex_free(new_map->regex);
                 free((genericptr_t) new_map->filename);
                 free((genericptr_t) new_map);
-                raw_print(re_error_desc);
+                /* silent on regex error for usersound mappings */
                 return 0;
             } else {
                 if (*msgtyp) {
@@ -1616,8 +1634,7 @@ add_sound_mapping(const char *mapping)
                 soundmap = new_map;
             }
         } else {
-            Sprintf(text, "cannot read %.243s", filespec);
-            raw_print(text);
+            /* File missing: silent (no error popup). Mapping is skipped. */
             return 0;
         }
     } else {
