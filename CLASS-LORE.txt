@@ -1,0 +1,41 @@
+FIVE NEW CLASSES — lore & playstyle
+===================================
+
+1) ALCHEMIST  (filecode Alc)
+   Home: the Crucible Laboratories
+   Gods: Hermes, Isis, Set
+   Play: Potion-heavy support/chaos. Starts with healing, acid, oil,
+         sickness, and mystery potions. Soft defenses, high Int.
+   Body: Healer chassis.
+
+2) HEXER  (Hex)
+   Home: the Coven of Ashen Willows
+   Gods: Hecate, Orcus, Nyarlathotep
+   Play: Debuff caster. Fear, confuse, sleep books; cloak of protection.
+         Attrition and control over raw damage. Wis/Int focused.
+   Body: Wizard chassis.
+
+3) CORSAIR  (Cor)
+   Home: Port Blackwake
+   Gods: Poseidon, Ran, Davy Jones
+   Play: Mobile raider. Scimitar + spare daggers, boots, booze, gold.
+         Aggressive melee/throw hybrid with loot focus.
+   Body: Rogue chassis.
+
+4) GEOMANCER  (Geo)
+   Home: the Deeproot Catacombs
+   Gods: Geb, Gaia, Typhon
+   Play: Terrain controller. Pick-axe, dig + stone-to-flesh books,
+         rocks, touchstone. Break walls, reshape fights.
+   Body: Archeologist chassis.
+
+5) WARDEN  (War)
+   Home: the Verdant Bastion
+   Gods: Artemis, Silvanus, Pan
+   Play: Guardian fighter. Sword + bow, shield, protection spell,
+         solid rations. Front-line endurance with ranged option.
+   Body: Ranger chassis (keeps a dog pet option).
+
+Also still available: RANDOM (Rnd) — scrambled stats & gear.
+
+Select them from the role list at character creation after rebuild.

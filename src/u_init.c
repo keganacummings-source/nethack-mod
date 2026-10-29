@@ -183,6 +183,64 @@ static const struct trobj Random_role[] = {
     { 0, 0, 0, 0, 0, 0 }
 };
 
+/* ---- Custom class starting kits (mod) ---- */
+static const struct trobj Alchemist_inv[] = {
+    { POT_HEALING, 0, POTION_CLASS, 3, 3, UNDEF_BLESS },
+    { POT_EXTRA_HEALING, 0, POTION_CLASS, 2, 2, UNDEF_BLESS },
+    { POT_ACID, 0, POTION_CLASS, 2, 2, 0 },
+    { POT_OIL, 0, POTION_CLASS, 2, 2, 0 },
+    { POT_SICKNESS, 0, POTION_CLASS, 1, 1, 0 },
+    { UNDEF_TYP, UNDEF_SPE, POTION_CLASS, 2, 2, UNDEF_BLESS },
+    { DAGGER, 0, WEAPON_CLASS, 1, 1, UNDEF_BLESS },
+    { LEATHER_ARMOR, 0, ARMOR_CLASS, 1, 1, UNDEF_BLESS },
+    { FOOD_RATION, 0, FOOD_CLASS, 2, 2, 0 },
+    { 0, 0, 0, 0, 0, 0 }
+};
+static const struct trobj Hexer_inv[] = {
+    { QUARTERSTAFF, 0, WEAPON_CLASS, 1, 1, UNDEF_BLESS },
+    { CLOAK_OF_PROTECTION, 0, ARMOR_CLASS, 1, 1, UNDEF_BLESS },
+    { SPE_CAUSE_FEAR, 0, SPBOOK_CLASS, 1, 1, 1 },
+    { SPE_CONFUSE_MONSTER, 0, SPBOOK_CLASS, 1, 1, 1 },
+    { SPE_SLEEP, 0, SPBOOK_CLASS, 1, 1, UNDEF_BLESS },
+    { UNDEF_TYP, UNDEF_SPE, SCROLL_CLASS, 2, 2, UNDEF_BLESS },
+    { UNDEF_TYP, UNDEF_SPE, POTION_CLASS, 2, 2, UNDEF_BLESS },
+    { FOOD_RATION, 0, FOOD_CLASS, 2, 2, 0 },
+    { 0, 0, 0, 0, 0, 0 }
+};
+static const struct trobj Corsair_inv[] = {
+    { SCIMITAR, 1, WEAPON_CLASS, 1, 1, UNDEF_BLESS },
+    { DAGGER, 0, WEAPON_CLASS, 3, 6, 0 },
+    { LEATHER_ARMOR, 1, ARMOR_CLASS, 1, 1, UNDEF_BLESS },
+    { HIGH_BOOTS, 0, ARMOR_CLASS, 1, 1, UNDEF_BLESS },
+    { POT_BOOZE, 0, POTION_CLASS, 2, 2, 0 },
+    { FOOD_RATION, 0, FOOD_CLASS, 2, 2, 0 },
+    { SACK, 0, TOOL_CLASS, 1, 1, 0 },
+    { 0, 0, 0, 0, 0, 0 }
+};
+static const struct trobj Geomancer_inv[] = {
+    { PICK_AXE, 1, TOOL_CLASS, 1, 1, UNDEF_BLESS },
+    { CLUB, 0, WEAPON_CLASS, 1, 1, UNDEF_BLESS },
+    { LEATHER_ARMOR, 0, ARMOR_CLASS, 1, 1, UNDEF_BLESS },
+    { SPE_DIG, 0, SPBOOK_CLASS, 1, 1, 1 },
+    { SPE_STONE_TO_FLESH, 0, SPBOOK_CLASS, 1, 1, UNDEF_BLESS },
+    { ROCK, 0, GEM_CLASS, 8, 12, 0 },
+    { FOOD_RATION, 0, FOOD_CLASS, 3, 3, 0 },
+    { TOUCHSTONE, 0, GEM_CLASS, 1, 1, 0 },
+    { 0, 0, 0, 0, 0, 0 }
+};
+static const struct trobj Warden_inv[] = {
+    { LONG_SWORD, 0, WEAPON_CLASS, 1, 1, UNDEF_BLESS },
+    { BOW, 0, WEAPON_CLASS, 1, 1, UNDEF_BLESS },
+    { ARROW, 0, WEAPON_CLASS, 30, 40, UNDEF_BLESS },
+    { LEATHER_ARMOR, 1, ARMOR_CLASS, 1, 1, UNDEF_BLESS },
+    { SMALL_SHIELD, 1, ARMOR_CLASS, 1, 1, UNDEF_BLESS },
+    { SPE_PROTECTION, 0, SPBOOK_CLASS, 1, 1, 1 },
+    { FOOD_RATION, 0, FOOD_CLASS, 3, 3, 0 },
+    { APPLE, 0, FOOD_CLASS, 5, 5, 0 },
+    { 0, 0, 0, 0, 0, 0 }
+};
+
+
 
 /*
  *      Optional extra inventory items.
@@ -657,6 +715,13 @@ u_init_role(void)
      * skew the results if we use rn2(2)...  --KAA
      */
     case PM_ARCHEOLOGIST:
+        if (urole.name.m && !strcmp(urole.name.m, "Geomancer")) {
+            ini_inv(Geomancer_inv);
+            knows_object(PICK_AXE, FALSE);
+            knows_object(TOUCHSTONE, FALSE);
+            knows_class(GEM_CLASS);
+            break;
+        }
         ini_inv(Archeologist);
         if (!rn2(10))
             ini_inv(Tinopener);
@@ -684,6 +749,16 @@ u_init_role(void)
         ini_inv(Cave_man);
         break;
     case PM_HEALER:
+        if (urole.name.m && !strcmp(urole.name.m, "Alchemist")) {
+            u.umoney0 = rn1(300, 200);
+            ini_inv(Alchemist_inv);
+            knows_object(POT_HEALING, FALSE);
+            knows_object(POT_EXTRA_HEALING, FALSE);
+            knows_object(POT_ACID, FALSE);
+            knows_object(POT_OIL, FALSE);
+            knows_class(POTION_CLASS);
+            break;
+        }
         u.umoney0 = rn1(1000, 1001);
         ini_inv(Healer);
         if (!rn2(25))
@@ -729,10 +804,23 @@ u_init_role(void)
          */
         break;
     case PM_RANGER:
+        if (urole.name.m && !strcmp(urole.name.m, "Warden")) {
+            ini_inv(Warden_inv);
+            knows_class(WEAPON_CLASS);
+            knows_class(ARMOR_CLASS);
+            break;
+        }
         ini_inv(Ranger);
         knows_class(WEAPON_CLASS); /* bows, arrows, spears only */
         break;
     case PM_ROGUE:
+        if (urole.name.m && !strcmp(urole.name.m, "Corsair")) {
+            u.umoney0 = rn1(400, 200);
+            ini_inv(Corsair_inv);
+            knows_class(WEAPON_CLASS);
+            knows_object(SACK, FALSE);
+            break;
+        }
         u.umoney0 = 0;
         ini_inv(Rogue);
         if (!rn2(5))
@@ -812,6 +900,11 @@ u_init_role(void)
         knows_class(ARMOR_CLASS);
         break;
     case PM_WIZARD:
+        if (urole.name.m && !strcmp(urole.name.m, "Hexer")) {
+            ini_inv(Hexer_inv);
+            knows_class(SPBOOK_CLASS);
+            break;
+        }
         ini_inv(Wizard);
         if (!rn2(5))
             ini_inv(Blindfold);
