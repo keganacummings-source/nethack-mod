@@ -1,0 +1,35 @@
+FIX: tiles + sounds not loading on Windows
+==========================================
+
+Your error means the game could not FIND the files:
+  cannot read sounds/lock.wav   -> SOUNDDIR path is wrong
+  Cannot load tiles ... (0x2)   -> tile_file path not found (Windows ERROR_FILE_NOT_FOUND)
+
+Relative paths like "sounds" or "tiles.bmp" only work if the process
+current directory is the folder that contains those files. Launchers,
+IDEs, and Start Menu shortcuts often start with a different cwd.
+
+INSTALL (do this once)
+----------------------
+1. Unzip this pack.
+2. Copy into the SAME folder as NetHackW.exe:
+     tiles.bmp
+     sounds\   (whole folder)
+     setup-assets.bat
+3. Double-click setup-assets.bat
+4. It writes assets-snippet.nh with FULL paths like:
+     OPTIONS=tile_file:C:\...\tiles.bmp,tile_width:32,tile_height:32
+     SOUNDDIR=C:\...\sounds
+5. In game, press O, find "configdir", open that folder.
+6. Edit defaults.nh / .nethackrc:
+   - Delete any old relative SOUNDDIR / SOUND= / tile_file lines
+   - Paste everything from assets-snippet.nh
+   - Save
+7. Restart the game.
+
+Until step 6 is done, leave tiles/sound options commented so you
+do not get the error dialog every launch.
+
+Other recent updates (classes, UI theme, mouse, combat numbers)
+are SOURCE changes — they only appear after you rebuild the game
+with those .c/.h files. Assets alone cannot enable compiled features.
