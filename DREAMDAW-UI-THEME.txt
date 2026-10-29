@@ -1,0 +1,26 @@
+DREAMDAW / TURBZ UI THEME
+========================
+Reference: https://dreamdaw.com
+
+Palette
+  ink       #140E0C   main background
+  panel     #241814   menus / text panels
+  cream     #F0E2C8   primary text
+  dim       #A89880   secondary text
+  kyo gold  #E6C15A   accents, heals, healthy status
+  coral     #C4473A   damage, danger, cursed
+  ui-line   #5A483A   borders / dividers
+
+Fonts
+  Preferred: VT323 (body), Press Start 2P (titles)
+  Free from Google Fonts. Install system-wide on Windows,
+  or fall back to Consolas lines in nethackrc.template.
+
+What changed
+  - sys/windows/nethackrc.template  windowcolors + fonts + menucolors
+  - win/win32/mhmain.c              main frame brush = ink
+  - win/win32/mhmap.c               float numbers + HP bars use palette
+
+Copy defaults.nh / nethackrc from the template after rebuild so the
+new OPTIONS take effect. Existing user configs keep old colors until
+you merge the windowcolors / font lines.

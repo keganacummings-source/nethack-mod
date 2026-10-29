@@ -1266,15 +1266,15 @@ onPaint(HWND hWnd)
                     /* dark empty track */
                     rInner.left = px; rInner.top = py;
                     rInner.right = px + barW; rInner.bottom = py + barH;
-                    hBrush = CreateSolidBrush(RGB(24, 24, 24));
+                    hBrush = CreateSolidBrush(RGB(0x14, 0x0E, 0x0C));
                     FillRect(hFrontBufferDC, &rInner, hBrush);
                     DeleteObject(hBrush);
                     /* fill color */
                     {
                         COLORREF hc;
-                        if (pct > 66) hc = RGB(48, 196, 48);
-                        else if (pct > 33) hc = RGB(220, 180, 32);
-                        else hc = RGB(220, 48, 48);
+                        if (pct > 66) hc = RGB(0x6A, 0xB0, 0x5A);
+                        else if (pct > 33) hc = RGB(0xE6, 0xC1, 0x5A);
+                        else hc = RGB(0xC4, 0x47, 0x3A);
                         rFill.left = px; rFill.top = py;
                         rFill.right = px + filled; rFill.bottom = py + barH;
                         hBrush = CreateSolidBrush(hc);
@@ -1365,8 +1365,9 @@ mswin_map_float_damage(int x, int y, int dmg, int is_heal)
             data->floatDmg[k].value = dmg;
             data->floatDmg[k].ttl = MAX_FLOAT_DMG_TTL;
             /* pixel-ish saturated colors */
-            data->floatDmg[k].color = is_heal ? RGB(80, 220, 80)
-                                              : RGB(255, 48, 48);
+            /* dreamdaw palette: kyo gold heal, coral damage */
+            data->floatDmg[k].color = is_heal ? RGB(0xE6, 0xC1, 0x5A)
+                                              : RGB(0xC4, 0x47, 0x3A);
             break;
         }
     }
