@@ -1,12 +1,17 @@
 NETHACK 5.0 -- MODERN + MOUSE MOD
 =================================
-What changed (source patch, see modern-mouse.patch):
+What changed (source patch):
   src/cmd.c              right-click now opens a context dropdown for ANY tile;
                          left-click = move / travel / open door / attack / use
                          stairs automatically. Many more menu entries.
-  win/win32/mhmap.c      a quick double left-click no longer counts as a right click
+  win/win32/mhmap.c      - hold LEFT click and drag: character follows the mouse
+                           in real time (re-issues travel/move as you move)
+                         - SCROLL WHEEL zooms the map in/out (0.25x .. 6x)
+                         - enemy HP bars drawn above visible monsters
+                         - floating damage numbers (call mswin_map_float_damage)
+                         - double left-click no longer counts as a right click
   sys/windows/nethackrc.template
-                         modern default config: dark theme, Segoe UI/Consolas
+                         modern default config: dark theme, pixel-style Consolas
                          fonts, scaled tile map, docked inventory, hover text
 
 ----------------------------------------------------------------------
@@ -42,6 +47,10 @@ a previous install it overrides the new defaults. To get the modern look:
   - the file MUST contain  OPTIONS=mouse_support:1  or clicks do nothing.
 Edit that file in Notepad to change fonts, colours, tiles, etc.
 
+Pixel fonts: the default uses Consolas for a crisp terminal look. For a more
+"pixel" feel, install a font such as "Press Start 2P" or "Pixel Operator" and
+set font_message / font_menu / font_status to that name in .nethackrc.
+
 ----------------------------------------------------------------------
 3. HOW TO PLAY WITH THE MOUSE
 ----------------------------------------------------------------------
@@ -51,6 +60,12 @@ LEFT CLICK on the map (does the sensible thing automatically)
                          (kick if locked) / search a wall
   on yourself .......... stairs up/down, drink from fountain, sit on throne,
                          pick up or loot items here, otherwise rest 1 turn
+
+HOLD LEFT CLICK + MOVE the mouse over the map
+  your character continuously follows the cursor (real-time pathing / steps)
+
+SCROLL WHEEL over the map
+  zoom in for close-up immersive tiles, zoom out to see more of the level
 
 RIGHT CLICK on a tile -> small dropdown of what you can do there
   on yourself .......... pick up / loot / eat what's here, stairs, rest,
@@ -64,6 +79,11 @@ RIGHT CLICK on a tile -> small dropdown of what you can do there
                          look at it
   further away ......... travel here, look at it, throw / fire quiver that
                          way (when lined up in a straight/diagonal line)
+
+ON-SCREEN FEEDBACK
+  Enemy HP bars ........ thin bars above visible monsters (green/yellow/red)
+  Damage numbers ....... floating red numbers when damage is reported
+                         (wired via mswin_map_float_damage from combat code)
 
 Item menus: after choosing e.g. "Quaff a potion" a list of your items pops up;
 click the item, then OK (or press Enter). Same for Wield, Wear, Throw, etc.

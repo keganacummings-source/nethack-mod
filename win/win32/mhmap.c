@@ -23,6 +23,8 @@
 
 #define CURSOR_BLINK_INTERVAL 1000 // milliseconds
 #define CURSOR_HEIGHT 2 // pixels
+#define MAX_FLOAT_DMG_TTL 30
+#define MAX_FLOAT_DMG 32
 
 #define TILEBMP_X(ntile) \
     ((ntile % GetNHApp()->mapTilesPerLine) * GetNHApp()->mapTile_X)
@@ -57,6 +59,17 @@ typedef struct mswin_nethack_map_window {
     double backScale;           /* scaling from source to back buffer */
     double frontScale;          /* scaling from back to front */
     double monitorScale;        /* from 96dpi to monitor dpi*/
+    double userZoom;            /* scroll-wheel zoom (1.0 = default) */
+    boolean lbuttonHeld;        /* left button currently held */
+    int lastClickX, lastClickY; /* last tile while dragging */
+
+    /* on-screen floating damage numbers */
+    struct {
+        int x, y;       /* map coords */
+        int value;      /* damage (0 = free slot) */
+        int ttl;        /* remaining paint ticks */
+        COLORREF color;
+    } floatDmg[32];
 
     boolean cursorOn;
     int yNoBlinkCursor;         /* non-blinking cursor height inback buffer
@@ -312,6 +325,11 @@ mswin_map_layout(HWND hWnd, LPSIZE map_size)
         }
 
     }
+
+    /* apply user scroll-wheel zoom (clamped) */
+    if (data->userZoom < 0.25) data->userZoom = 0.25;
+    if (data->userZoom > 6.0) data->userZoom = 6.0;
+    data->frontScale *= data->userZoom;
 
     /* TODO: Should we round instead of clamping? */
     data->xFrontTile = (int) ((double) data->xBackTile * data->frontScale);
@@ -611,23 +629,69 @@ MapWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_LBUTTONDOWN:
     case WM_LBUTTONDBLCLK: /* modded: a fast second click is still a left click */
-        NHEVENT_MS(CLICK_1,
-                   max(0, min(COLNO, data->xPos
-                                         + (LOWORD(lParam) - data->map_orig.x)
-                                               / data->xFrontTile)),
-                   max(0, min(ROWNO, data->yPos
-                                         + (HIWORD(lParam) - data->map_orig.y)
-                                               / data->yFrontTile)));
+    {
+        int mx = max(0, min(COLNO - 1, data->xPos
+                              + (GET_X_LPARAM(lParam) - data->map_orig.x)
+                                    / max(1, data->xFrontTile)));
+        int my = max(0, min(ROWNO - 1, data->yPos
+                              + (GET_Y_LPARAM(lParam) - data->map_orig.y)
+                                    / max(1, data->yFrontTile)));
+        data->lbuttonHeld = TRUE;
+        data->lastClickX = mx;
+        data->lastClickY = my;
+        SetCapture(hWnd);
+        NHEVENT_MS(CLICK_1, mx, my);
         return 0;
+    }
+
+    case WM_LBUTTONUP:
+        data->lbuttonHeld = FALSE;
+        data->lastClickX = data->lastClickY = -1;
+        ReleaseCapture();
+        return 0;
+
+    case WM_MOUSEMOVE:
+        /* Hold left-click and drag: character follows the mouse in real time */
+        if (data->lbuttonHeld && (wParam & MK_LBUTTON)) {
+            int mx = max(0, min(COLNO - 1, data->xPos
+                                  + (GET_X_LPARAM(lParam) - data->map_orig.x)
+                                        / max(1, data->xFrontTile)));
+            int my = max(0, min(ROWNO - 1, data->yPos
+                                  + (GET_Y_LPARAM(lParam) - data->map_orig.y)
+                                        / max(1, data->yFrontTile)));
+            if (mx != data->lastClickX || my != data->lastClickY) {
+                data->lastClickX = mx;
+                data->lastClickY = my;
+                NHEVENT_MS(CLICK_1, mx, my);
+            }
+        }
+        return 0;
+
+    case WM_MOUSEWHEEL:
+    {
+        /* Scroll-wheel zoom in / out for immersive close-up play */
+        short delta = GET_WHEEL_DELTA_WPARAM(wParam);
+        double factor = (delta > 0) ? 1.15 : (1.0 / 1.15);
+        data->userZoom *= factor;
+        if (data->userZoom < 0.25) data->userZoom = 0.25;
+        if (data->userZoom > 6.0) data->userZoom = 6.0;
+        {
+            SIZE mapSize;
+            mapSize.cx = data->tileWidth * COLNO;
+            mapSize.cy = data->tileHeight * ROWNO;
+            mswin_map_layout(hWnd, &mapSize);
+        }
+        return 0;
+    }
 
     case WM_RBUTTONDOWN:
         NHEVENT_MS(CLICK_2,
-                   max(0, min(COLNO, data->xPos
-                                         + (LOWORD(lParam) - data->map_orig.x)
-                                               / data->xFrontTile)),
-                   max(0, min(ROWNO, data->yPos
-                                         + (HIWORD(lParam) - data->map_orig.y)
-                                               / data->yFrontTile)));
+                   max(0, min(COLNO - 1, data->xPos
+                                         + (GET_X_LPARAM(lParam) - data->map_orig.x)
+                                               / max(1, data->xFrontTile))),
+                   max(0, min(ROWNO - 1, data->yPos
+                                         + (GET_Y_LPARAM(lParam) - data->map_orig.y)
+                                               / max(1, data->yFrontTile))));
         return 0;
 
     case WM_DESTROY:
@@ -824,6 +888,10 @@ onCreate(HWND hWnd, WPARAM wParam, LPARAM lParam)
 
     data->bAsciiMode = FALSE;
     data->cursorOn = TRUE;
+    data->userZoom = 1.0;
+    data->lbuttonHeld = FALSE;
+    data->lastClickX = data->lastClickY = -1;
+    /* floatDmg zeroed by ZeroMemory above */
 
     data->xFrontTile = GetNHApp()->mapTile_X;
     data->yFrontTile = GetNHApp()->mapTile_Y;
@@ -1133,13 +1201,112 @@ onPaint(HWND hWnd)
     /* stretch back buffer onto front buffer window */
     int frontWidth = COLNO * data->xFrontTile;
     int frontHeight = ROWNO * data->yFrontTile;
+    int ox = data->map_orig.x - (data->xPos * data->xFrontTile);
+    int oy = data->map_orig.y - (data->yPos * data->yFrontTile);
 
     StretchBlt(hFrontBufferDC,
-        data->map_orig.x - (data->xPos * data->xFrontTile),
-        data->map_orig.y - (data->yPos * data->yFrontTile), frontWidth, frontHeight,
-                data->backBufferDC, 0, 0, data->backWidth, data->backHeight, SRCCOPY);
+        ox, oy, frontWidth, frontHeight,
+        data->backBufferDC, 0, 0, data->backWidth, data->backHeight, SRCCOPY);
+
+    /* ---- Enemy HP bars (visible monsters on map) ---- */
+    if (data->xFrontTile >= 8) {
+        int i, j;
+        for (i = 0; i < COLNO; i++) {
+            for (j = 0; j < ROWNO; j++) {
+                int g = data->map[i][j].glyph;
+                /* glyph_is_monster is the portable test; fall back to range */
+                if (glyph_is_monster(g)) {
+                    struct monst *mtmp = m_at(i, j);
+                    if (mtmp && mtmp->mhpmax > 0 && canspotmon(mtmp)) {
+                        int barW = data->xFrontTile - 2;
+                        int barH = max(2, data->yFrontTile / 8);
+                        int px = ox + i * data->xFrontTile + 1;
+                        int py = oy + j * data->yFrontTile + 1;
+                        int filled = (barW * mtmp->mhp) / mtmp->mhpmax;
+                        if (filled < 0) filled = 0;
+                        if (filled > barW) filled = barW;
+                        /* background (empty) */
+                        RECT rbg = { px, py, px + barW, py + barH };
+                        HBRUSH hEmpty = CreateSolidBrush(RGB(40, 40, 40));
+                        FillRect(hFrontBufferDC, &rbg, hEmpty);
+                        DeleteObject(hEmpty);
+                        /* filled portion: green -> yellow -> red */
+                        COLORREF hc;
+                        int pct = (mtmp->mhp * 100) / mtmp->mhpmax;
+                        if (pct > 66) hc = RGB(40, 200, 40);
+                        else if (pct > 33) hc = RGB(220, 200, 40);
+                        else hc = RGB(220, 40, 40);
+                        RECT rfg = { px, py, px + filled, py + barH };
+                        HBRUSH hFill = CreateSolidBrush(hc);
+                        FillRect(hFrontBufferDC, &rfg, hFill);
+                        DeleteObject(hFill);
+                    }
+                }
+            }
+        }
+    }
+
+    /* ---- Floating damage numbers ---- */
+    {
+        int k;
+        HFONT hOldFont, hDmgFont;
+        SetBkMode(hFrontBufferDC, TRANSPARENT);
+        hDmgFont = CreateFont(
+            max(12, data->yFrontTile * 2 / 3), 0, 0, 0, FW_BOLD,
+            FALSE, FALSE, FALSE, ANSI_CHARSET,
+            OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+            NONANTIALIASED_QUALITY, FIXED_PITCH | FF_MODERN,
+            TEXT("Consolas"));
+        hOldFont = SelectObject(hFrontBufferDC, hDmgFont);
+        for (k = 0; k < MAX_FLOAT_DMG; k++) {
+            if (data->floatDmg[k].value != 0 && data->floatDmg[k].ttl > 0) {
+                char buf[16];
+                RECT tr;
+                int px = ox + data->floatDmg[k].x * data->xFrontTile;
+                int py = oy + data->floatDmg[k].y * data->yFrontTile
+                         - (8 * (MAX_FLOAT_DMG_TTL - data->floatDmg[k].ttl) / MAX_FLOAT_DMG_TTL);
+                snprintf(buf, sizeof buf, "%d", data->floatDmg[k].value);
+                SetTextColor(hFrontBufferDC, data->floatDmg[k].color);
+                tr.left = px; tr.top = py;
+                tr.right = px + data->xFrontTile; tr.bottom = py + data->yFrontTile;
+                DrawTextA(hFrontBufferDC, buf, -1, &tr,
+                          DT_CENTER | DT_SINGLELINE | DT_NOCLIP);
+                data->floatDmg[k].ttl--;
+                if (data->floatDmg[k].ttl <= 0)
+                    data->floatDmg[k].value = 0;
+            }
+        }
+        SelectObject(hFrontBufferDC, hOldFont);
+        DeleteObject(hDmgFont);
+    }
 
     EndPaint(hWnd, &ps);
+}
+
+/* Public helper: queue a floating damage number over a map tile */
+void
+mswin_map_float_damage(int x, int y, int dmg, int is_heal)
+{
+    HWND hWnd = mswin_hwnd_from_winid(WIN_MAP);
+    PNHMapWindow data;
+    int k;
+    if (!IsWindow(hWnd) || dmg == 0)
+        return;
+    data = (PNHMapWindow) GetWindowLongPtr(hWnd, GWLP_USERDATA);
+    if (!data)
+        return;
+    for (k = 0; k < MAX_FLOAT_DMG; k++) {
+        if (data->floatDmg[k].value == 0) {
+            data->floatDmg[k].x = x;
+            data->floatDmg[k].y = y;
+            data->floatDmg[k].value = dmg;
+            data->floatDmg[k].ttl = MAX_FLOAT_DMG_TTL;
+            data->floatDmg[k].color = is_heal ? RGB(80, 255, 80) : RGB(255, 60, 60);
+            break;
+        }
+    }
+    /* force a repaint so numbers animate */
+    InvalidateRect(hWnd, NULL, FALSE);
 }
 
 /* on WM_VSCROLL */

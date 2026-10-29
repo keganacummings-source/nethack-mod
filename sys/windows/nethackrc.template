@@ -3,12 +3,9 @@
 
 # ======================= MOUSE =======================
 # LEFT click on the map   = walk / travel / open door / attack, automatically
-# RIGHT click on a tile   = dropdown menu of what you can do there:
-#                           - on yourself: pick up, stairs, eat, quaff, read, apply,
-#                             wield, wear, zap, throw, inventory, options, ...
-#                           - next to you: open/close/kick door, attack, talk,
-#                             throw, fire, search, move there, ...
-#                           - far away:    travel here, look at it, throw/fire at it
+# HOLD left + drag        = character follows the mouse in real time
+# RIGHT click on a tile   = dropdown menu of what you can do there
+# SCROLL WHEEL            = zoom the map in / out (immersive close-ups)
 # (these are the built-in defaults of this build; mouse_support must stay on)
 OPTIONS=mouse_support:1
 OPTIONS=travel
@@ -16,14 +13,19 @@ OPTIONS=travel
 # ======================= LOOK & FEEL =======================
 # Scales the map to the window instead of a fixed pixel size.
 # Prefer crisp fixed tiles?  Use map_mode:tiles  (and tile_width/tile_height)
+# Scroll-wheel zoom works on top of this.
 OPTIONS=map_mode:tiles_fit_to_screen,scroll_margin:8
 OPTIONS=!splash_screen
 
-# Clean sans-serif UI fonts (Windows ships with Segoe UI and Consolas)
-OPTIONS=font_message:Segoe UI,font_size_message:15,align_message:top
-OPTIONS=font_menu:Segoe UI,font_size_menu:15
-OPTIONS=font_text:Consolas,font_size_text:15
-OPTIONS=font_status:Consolas,font_size_status:15
+# Pixel-themed UI fonts (crisp, non-antialiased look)
+# Consolas / Cascadia Mono / Fixedsys give a clean pixel / terminal feel.
+# Install "Press Start 2P" or "Pixel Operator" for an even more retro look
+# and set e.g.  font_message:Press Start 2P
+OPTIONS=font_message:Consolas,font_size_message:14,align_message:top
+OPTIONS=font_menu:Consolas,font_size_menu:14
+OPTIONS=font_text:Consolas,font_size_text:14
+OPTIONS=font_status:Consolas,font_size_status:14
+OPTIONS=font_map:Consolas
 
 # Dark theme for message / status / text / menu windows
 OPTIONS=windowcolors:status #E4E6EF/#16181D message #E4E6EF/#16181D text #E4E6EF/#1B1D23 menu #E4E6EF/#1B1D23
@@ -102,4 +104,3 @@ OPTIONS=hilite_status:gold/up/yellow/down/brown
 
 # St, Dx, Co, In, Wi, Ch
 OPTIONS=hilite_status:characteristics/up/green/down/red
-

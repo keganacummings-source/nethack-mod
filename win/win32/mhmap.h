@@ -1,5 +1,5 @@
-/* NetHack 5.0	mhmap.h	$NHDT-Date: 1781973103 2026/06/20 16:31:43 $  $NHDT-Branch: NetHack-5.0 $:$NHDT-Revision: 1.20 $ */
-/* Copyright (C) 2001 by Alex Kompel 	 */
+/* NetHack 5.0	mhmap.h	$NHDT-Date: 1781973103 2026/06/20 16:31:43 $  $NHDT-Branch: NetHack-5.0 $:$NHDT-Revision: 1.21 $ */
+/* Copyright (C) 2001 by Alex Kompel	 */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #ifndef MSWINMapWindow_h
@@ -14,6 +14,9 @@ HWND mswin_init_map_window(void);
 void mswin_map_layout(HWND hWnd, LPSIZE lpsz);
 int mswin_map_mode(HWND hWnd, int mode);
 void mswin_map_update(HWND hWnd);
+
+/* floating damage numbers over the map (call from combat hooks) */
+void mswin_map_float_damage(int x, int y, int dmg, int is_heal);
 
 #define ROGUE_LEVEL_MAP_MODE MAP_MODE_ASCII12x16
 #define ROGUE_LEVEL_MAP_MODE_FIT_TO_SCREEN MAP_MODE_ASCII_FIT_TO_SCREEN
