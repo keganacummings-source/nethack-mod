@@ -5011,12 +5011,15 @@ there_cmd_menu(coordxy x, coordxy y, int mod)
         }
         npick = 0;
         ch = '\0';
-    } else if (K == 1 && act != MCMD_NOTHING && act != MCMD_TRAVEL) {
+    } else if (K == 1 && act != MCMD_NOTHING && act != MCMD_TRAVEL
+               && !(mod & CLICK_2)) {
+        /* left-click convenience: only one sensible action -> do it */
         destroy_nhwindow(win);
 
         act_on_act(act, dx, dy);
         return '\0';
     } else {
+        /* right-click (or multiple choices): always show the actions menu */
         end_menu(win, "What do you want to do?");
         npick = select_menu(win, PICK_ONE, &picks);
         ch = '\033';

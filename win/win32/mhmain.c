@@ -715,22 +715,36 @@ mswin_layout_main_window(HWND changed_child)
         GetNHApp()->rtMsgWindow.right = msg_org.x + msg_size.cx;
         GetNHApp()->rtMsgWindow.bottom = msg_org.y + msg_size.cy;
 
-        /*  map_width/4 < menu_width < map_width*2/3 */
-        GetNHApp()->rtMenuWindow.left =
-            GetNHApp()->rtMapWindow.right
-            - min(map_size.cx * 2 / 3, max(map_size.cx / 4, menu_size.cx));
-        GetNHApp()->rtMenuWindow.top = GetNHApp()->rtMapWindow.top;
-        GetNHApp()->rtMenuWindow.right = GetNHApp()->rtMapWindow.right;
-        GetNHApp()->rtMenuWindow.bottom = GetNHApp()->rtMapWindow.bottom;
+        /* Side inventory panel: reserve a reliable column on the right.
+           Prefer measured menu width, but never thinner than ~240px or
+           map/5, and never wider than map*2/5 so the map stays playable. */
+        {
+            int inv_w;
+            int map_w = map_size.cx;
+            int measured = menu_size.cx;
+            int min_inv = max(240, map_w / 5);
+            int max_inv = max(min_inv, map_w * 2 / 5);
+            inv_w = measured;
+            if (inv_w < min_inv) inv_w = min_inv;
+            if (inv_w > max_inv) inv_w = max_inv;
+            /* if permanent inventory is off, keep old overlay behaviour */
+            if (!iflags.perm_invent) {
+                inv_w = min(map_w * 2 / 3, max(map_w / 4, measured));
+            }
+            GetNHApp()->rtMenuWindow.left = GetNHApp()->rtMapWindow.right - inv_w;
+            GetNHApp()->rtMenuWindow.top = GetNHApp()->rtMapWindow.top;
+            GetNHApp()->rtMenuWindow.right = GetNHApp()->rtMapWindow.right;
+            GetNHApp()->rtMenuWindow.bottom = GetNHApp()->rtMapWindow.bottom;
 
-        GetNHApp()->rtInvenWindow.left = GetNHApp()->rtMenuWindow.left;
-        GetNHApp()->rtInvenWindow.top = GetNHApp()->rtMenuWindow.top;
-        GetNHApp()->rtInvenWindow.right = GetNHApp()->rtMenuWindow.right;
-        GetNHApp()->rtInvenWindow.bottom = GetNHApp()->rtMenuWindow.bottom;
+            GetNHApp()->rtInvenWindow.left = GetNHApp()->rtMenuWindow.left;
+            GetNHApp()->rtInvenWindow.top = GetNHApp()->rtMenuWindow.top;
+            GetNHApp()->rtInvenWindow.right = GetNHApp()->rtMenuWindow.right;
+            GetNHApp()->rtInvenWindow.bottom = GetNHApp()->rtMenuWindow.bottom;
 
-        /* adjust map window size only if perm_invent is set */
-        if (iflags.perm_invent)
-            GetNHApp()->rtMapWindow.right = GetNHApp()->rtMenuWindow.left;
+            /* shrink map so invent sits beside it, not on top of it */
+            if (iflags.perm_invent)
+                GetNHApp()->rtMapWindow.right = GetNHApp()->rtMenuWindow.left;
+        }
     }
 
     /* go through the windows list and adjust sizes */

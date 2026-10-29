@@ -23,7 +23,7 @@
 
 #define CURSOR_BLINK_INTERVAL 1000 // milliseconds
 #define CURSOR_HEIGHT 2 // pixels
-#define MAX_FLOAT_DMG_TTL 30
+#define MAX_FLOAT_DMG_TTL 45
 #define MAX_FLOAT_DMG 32
 
 #define TILEBMP_X(ntile) \
@@ -1252,7 +1252,7 @@ onPaint(HWND hWnd)
         HFONT hOldFont, hDmgFont;
         SetBkMode(hFrontBufferDC, TRANSPARENT);
         hDmgFont = CreateFont(
-            max(12, data->yFrontTile * 2 / 3), 0, 0, 0, FW_BOLD,
+            max(14, data->yFrontTile * 3 / 4), 0, 0, 0, FW_BOLD,
             FALSE, FALSE, FALSE, ANSI_CHARSET,
             OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
             NONANTIALIASED_QUALITY, FIXED_PITCH | FF_MODERN,

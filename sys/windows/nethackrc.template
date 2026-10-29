@@ -31,6 +31,7 @@ OPTIONS=font_map:Consolas
 OPTIONS=windowcolors:status #E4E6EF/#16181D message #E4E6EF/#16181D text #E4E6EF/#1B1D23 menu #E4E6EF/#1B1D23
 
 # Always-visible inventory panel (set to !perm_invent to hide)
+# Side inventory panel (always visible on the right)
 OPTIONS=perm_invent,perminv_mode:all
 
 # Helpful visual feedback while using the mouse

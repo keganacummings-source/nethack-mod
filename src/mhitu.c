@@ -5,6 +5,13 @@
 
 #include "hack.h"
 #include "artifact.h"
+#ifdef MSWIN_GRAPHICS
+extern void mswin_map_float_damage(int x, int y, int dmg, int is_heal);
+#define SHOW_COMBAT_NUM(x, y, d, heal) \
+    do { if ((d) > 0) mswin_map_float_damage((x), (y), (d), (heal)); } while (0)
+#else
+#define SHOW_COMBAT_NUM(x, y, d, heal) ((void) 0)
+#endif
 
 static NEARDATA struct obj *mon_currwep = (struct obj *) 0;
 
@@ -1907,6 +1914,8 @@ mdamageu(struct monst *mtmp, int n)
     }
 
     disp.botl = TRUE;
+    if (n > 0)
+        SHOW_COMBAT_NUM(u.ux, u.uy, n, 0); /* red number over the hero */
     if (Upolyd) {
         u.mh -= n;
         showdamage(n);

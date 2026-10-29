@@ -4,6 +4,14 @@
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
+#ifdef MSWIN_GRAPHICS
+/* win/win32/mhmap.c – floating combat numbers over the map */
+extern void mswin_map_float_damage(int x, int y, int dmg, int is_heal);
+#define SHOW_COMBAT_NUM(x, y, d, heal) \
+    do { if ((d) > 0) mswin_map_float_damage((x), (y), (d), (heal)); } while (0)
+#else
+#define SHOW_COMBAT_NUM(x, y, d, heal) ((void) 0)
+#endif
 
 static const char brief_feeling[] =
     "have a %s feeling for a moment, then it passes.";
@@ -1843,6 +1851,8 @@ hmon_hitmon(
             && hmd.dmg > 0 && u.uconduct.weaphit <= 1)
             first_weapon_hit(obj);
         mon->mhp -= hmd.dmg;
+        if (hmd.dmg > 0)
+            SHOW_COMBAT_NUM(mon->mx, mon->my, hmd.dmg, 0);
     }
     /* adjustments might have made tmp become less than what
        a level-draining artifact has already done to max HP */
@@ -4858,6 +4868,8 @@ damageum(
 
     mdef->mstrategy &= ~STRAT_WAITFORU; /* in case player is very fast */
     mdef->mhp -= mhm.damage;
+    if (mhm.damage > 0)
+        SHOW_COMBAT_NUM(mdef->mx, mdef->my, mhm.damage, 0);
     if (DEADMONSTER(mdef)) {
         /* troll killed by Trollsbane won't auto-revive; FIXME? same when
            Trollsbane is wielded as primary and two-weaponing kills with
@@ -5179,6 +5191,8 @@ gulpum(struct monst *mdef, struct attack *mattk)
             }
             end_engulf();
             mdef->mhp -= dam;
+            if (dam > 0)
+                SHOW_COMBAT_NUM(mdef->mx, mdef->my, dam, 0);
             if (DEADMONSTER(mdef)) {
                 killed(mdef);
                 if (DEADMONSTER(mdef)) /* not lifesaved */
@@ -6433,6 +6447,8 @@ light_hits_gremlin(struct monst *mon, int dmg)
         pline_mon(mon, "%s recoils from the light!", Monnam(mon));
     }
     mon->mhp -= dmg;
+    if (dmg > 0)
+        SHOW_COMBAT_NUM(mon->mx, mon->my, dmg, 0);
     wake_nearto(mon->mx, mon->my, 30);
     if (DEADMONSTER(mon)) {
         if (svc.context.mon_moving)
