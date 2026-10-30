@@ -3622,6 +3622,30 @@ move_update(boolean newlev)
     *ptr2 = '\0';
 }
 
+/* Walk-in secret door reveal: when the hero steps into a room, every secret
+   door in that room's walls turns into an ordinary door.  Returns how many
+   were revealed. */
+static int
+reveal_room_secret_doors(int roomno)
+{
+    struct mkroom *r;
+    int x, y, found = 0;
+
+    if (roomno < 0 || roomno >= svn.nroom)
+        return 0;
+    r = &svr.rooms[roomno];
+    for (x = r->lx - 1; x <= r->hx + 1; x++) {
+        for (y = r->ly - 1; y <= r->hy + 1; y++) {
+            if (!isok(x, y) || levl[x][y].typ != SDOOR)
+                continue;
+            cvt_sdoor_to_door(&levl[x][y]); /* .typ = DOOR */
+            newsym(x, y);
+            found++;
+        }
+    }
+    return found;
+}
+
 /* possibly deliver a one-time room entry message */
 void
 check_special_room(boolean newlev)
@@ -3630,6 +3654,18 @@ check_special_room(boolean newlev)
     char *ptr;
 
     move_update(newlev);
+
+    /* hidden doors reveal themselves as soon as you walk into the room */
+    if (!newlev && *u.uentered) {
+        int revealed = 0;
+
+        for (ptr = u.uentered; *ptr; ptr++)
+            if (*ptr >= ROOMOFFSET)
+                revealed += reveal_room_secret_doors(*ptr - ROOMOFFSET);
+        if (revealed)
+            You("notice %s hidden door%s.", revealed == 1 ? "a" : "some",
+                revealed == 1 ? "" : "s");
+    }
 
     if (*u.ushops0)
         u_left_shop(u.ushops_left, newlev);
