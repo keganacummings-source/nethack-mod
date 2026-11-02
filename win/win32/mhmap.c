@@ -28,6 +28,11 @@
 #define FLOAT_DMG_INTERVAL 50
 #define MAX_FLOAT_DMG 32
 
+/* smooth glide animation of monsters / hero between tiles */
+#define MAX_GLIDE 32
+#define GLIDE_DEFAULT_MS 90   /* single-step slide time; override with
+                                 environment variable NH_GLIDE_MS (0 = off) */
+
 #define TILEBMP_X(ntile) \
     ((ntile % GetNHApp()->mapTilesPerLine) * GetNHApp()->mapTile_X)
 #define TILEBMP_Y(ntile) \
@@ -73,6 +78,23 @@ typedef struct mswin_nethack_map_window {
         COLORREF color;
     } floatDmg[32];
 
+    /* glide animation: tile-to-tile slide of moving monsters / the hero */
+    struct {                    /* tiles that lost a monster this flush */
+        int x, y, glyph;
+    } gDep[MAX_GLIDE];
+    struct {                    /* tiles that gained a monster this flush */
+        int x, y, glyph, tileidx;
+        boolean isPet;
+    } gArr[MAX_GLIDE];
+    int nDep, nArr;
+    struct {                    /* slides currently being drawn */
+        int fx, fy, tx, ty, glyph, tileidx;
+        boolean isPet;
+        double prog;            /* 0.0 .. 1.0 */
+    } glide[MAX_GLIDE];
+    int nGlide;
+    int glideMs;                /* 0 = glide disabled */
+
     boolean cursorOn;
     int yNoBlinkCursor;         /* non-blinking cursor height inback buffer
                                    in pixels */
@@ -103,6 +125,11 @@ static void dirty(PNHMapWindow data, int i, int j);
 static void setGlyph(PNHMapWindow data, int i, int j,
                      const glyph_info *fg, const glyph_info *bg);
 static void clearAll(PNHMapWindow data);
+static void glideNote(PNHMapWindow data, int i, int j,
+                      const glyph_info *oldfg, const glyph_info *newfg);
+static void glideRun(PNHMapWindow data);
+static void paintGlides(PNHMapWindow data, HDC hdc, int ox, int oy);
+static void glideOffset(PNHMapWindow data, int i, int j, int *dx, int *dy);
 
 #if (VERSION_MAJOR < 4) && (VERSION_MINOR < 4) && (PATCHLEVEL < 2)
 static void nhglyph2charcolor(short glyph, uchar *ch, int *color);
@@ -515,6 +542,25 @@ mswin_map_mode(HWND hWnd, int mode)
     return oldMode;
 }
 
+/* TRUE when the loaded map tile bitmap actually holds a full tileset
+   (the build ships only a tiny placeholder; real tiles come from an
+   optional tile_file).  Without tiles the map falls back to text. */
+BOOL
+mswin_tiles_usable(void)
+{
+    BITMAP bm;
+    extern int total_tiles_used;
+
+    if (!GetNHApp()->bmpMapTiles || GetNHApp()->mapTile_X <= 0
+        || GetNHApp()->mapTile_Y <= 0)
+        return FALSE;
+    if (!GetObject(GetNHApp()->bmpMapTiles, sizeof(BITMAP), (LPVOID) &bm))
+        return FALSE;
+    return (BOOL) ((bm.bmWidth / GetNHApp()->mapTile_X)
+                       * (bm.bmHeight / GetNHApp()->mapTile_Y)
+                   >= total_tiles_used);
+}
+
 void mswin_map_update(HWND hWnd)
 {
     PNHMapWindow data = (PNHMapWindow)GetWindowLongPtr(hWnd, GWLP_USERDATA);
@@ -536,7 +582,11 @@ void mswin_map_update(HWND hWnd)
 
         SelectObject(data->tileDC, savedBitmap);
         data->mapDirty = FALSE;
+
+        /* slide any monsters / the hero that moved since the last flush */
+        glideRun(data);
     }
+    data->nDep = data->nArr = 0;
 
 }
 
@@ -912,6 +962,12 @@ onCreate(HWND hWnd, WPARAM wParam, LPARAM lParam)
     data->lbuttonHeld = FALSE;
     data->lastClickX = data->lastClickY = -1;
     /* floatDmg zeroed by ZeroMemory above */
+    data->glideMs = GLIDE_DEFAULT_MS;
+    {
+        const char *gs = getenv("NH_GLIDE_MS");
+        if (gs && *gs)
+            data->glideMs = max(0, min(500, atoi(gs)));
+    }
 
     data->xFrontTile = GetNHApp()->mapTile_X;
     data->yFrontTile = GetNHApp()->mapTile_Y;
@@ -1157,11 +1213,218 @@ static void setGlyph(PNHMapWindow data, int i, int j,
         || data->map[i][j].gm.customcolor != fg->gm.customcolor
         || data->map[i][j].gm.glyphflags != fg->gm.glyphflags
         || data->map[i][j].gm.tileidx != fg->gm.tileidx) {
+        glyph_info oldfg = data->map[i][j];
         data->map[i][j] = *fg;
         data->bkmap[i][j] = *bg;
         data->locDirty[i][j] = TRUE;
         data->mapDirty = TRUE;
+        glideNote(data, i, j, &oldfg, fg);
     }
+}
+
+/* remember that a monster glyph left / arrived at a map location; the
+   pairs are matched up and animated in glideRun() at the next flush */
+static void
+glideNote(PNHMapWindow data, int i, int j, const glyph_info *oldfg,
+          const glyph_info *newfg)
+{
+    if (data->glideMs <= 0 || data->bAsciiMode || Is_rogue_level(&u.uz))
+        return;
+    if (oldfg->glyph == newfg->glyph)
+        return;
+    if (oldfg->glyph != NO_GLYPH && glyph_is_monster(oldfg->glyph)
+        && data->nDep < MAX_GLIDE) {
+        data->gDep[data->nDep].x = i;
+        data->gDep[data->nDep].y = j;
+        data->gDep[data->nDep].glyph = oldfg->glyph;
+        data->nDep++;
+    }
+    if (newfg->glyph != NO_GLYPH && glyph_is_monster(newfg->glyph)
+        && data->nArr < MAX_GLIDE) {
+        int n = data->nArr++;
+        data->gArr[n].x = i;
+        data->gArr[n].y = j;
+        data->gArr[n].glyph = newfg->glyph;
+        data->gArr[n].tileidx = newfg->gm.tileidx;
+#ifdef USE_PILEMARK
+        data->gArr[n].isPet = (newfg->gm.glyphflags & MG_PET) != 0;
+#else
+        data->gArr[n].isPet = glyph_is_pet(newfg->glyph);
+#endif
+    }
+}
+
+/* front-buffer pixel rectangle covering one slide (start tile .. end tile) */
+static void
+glideRect(PNHMapWindow data, int k, RECT *r)
+{
+    int ox = data->map_orig.x - (data->xPos * data->xFrontTile);
+    int oy = data->map_orig.y - (data->yPos * data->yFrontTile);
+    int x0 = min(data->glide[k].fx, data->glide[k].tx);
+    int x1 = max(data->glide[k].fx, data->glide[k].tx);
+    int y0 = min(data->glide[k].fy, data->glide[k].ty);
+    int y1 = max(data->glide[k].fy, data->glide[k].ty);
+
+    r->left = ox + x0 * data->xFrontTile - 2;
+    r->top = oy + y0 * data->yFrontTile - 2;
+    r->right = ox + (x1 + 1) * data->xFrontTile + 2;
+    r->bottom = oy + (y1 + 1) * data->yFrontTile + 2;
+}
+
+/* pair up departures and arrivals from this flush, then play the slide.
+   The game runs on the UI thread and only pumps messages while waiting
+   for a key, so the animation is driven synchronously from here rather
+   than from a timer. */
+static void
+glideRun(PNHMapWindow data)
+{
+    int a, d, k, dur;
+    boolean used[MAX_GLIDE];
+    ULONGLONG t0;
+
+    data->nGlide = 0;
+    if (data->glideMs <= 0 || data->nArr == 0 || data->nDep == 0
+        || data->xFrontTile < 8)
+        return;
+
+    ZeroMemory(used, sizeof used);
+    for (a = 0; a < data->nArr; a++) {
+        int best = -1, bestdist = 99;
+        for (d = 0; d < data->nDep; d++) {
+            int dist;
+            if (used[d] || data->gDep[d].glyph != data->gArr[a].glyph)
+                continue;
+            dist = max(abs(data->gDep[d].x - data->gArr[a].x),
+                       abs(data->gDep[d].y - data->gArr[a].y));
+            if (dist >= 1 && dist <= 3 && dist < bestdist) {
+                bestdist = dist;
+                best = d;
+            }
+        }
+        if (best >= 0 && data->nGlide < MAX_GLIDE) {
+            k = data->nGlide++;
+            used[best] = TRUE;
+            data->glide[k].fx = data->gDep[best].x;
+            data->glide[k].fy = data->gDep[best].y;
+            data->glide[k].tx = data->gArr[a].x;
+            data->glide[k].ty = data->gArr[a].y;
+            data->glide[k].glyph = data->gArr[a].glyph;
+            data->glide[k].tileidx = data->gArr[a].tileidx;
+            data->glide[k].isPet = data->gArr[a].isPet;
+            data->glide[k].prog = 0.0;
+        }
+    }
+    data->nDep = data->nArr = 0;
+    if (data->nGlide == 0)
+        return;
+
+    /* running / travelling / counted moves: keep it brisk */
+    dur = data->glideMs;
+    if (svc.context.run || gm.multi > 0)
+        dur = max(25, dur / 2);
+
+    t0 = GetTickCount64();
+    for (;;) {
+        ULONGLONG el = GetTickCount64() - t0;
+        double p = (el >= (ULONGLONG) dur) ? 1.0 : (double) el / (double) dur;
+        double e = p * (2.0 - p); /* ease-out */
+
+        for (k = 0; k < data->nGlide; k++) {
+            RECT r;
+            data->glide[k].prog = e;
+            glideRect(data, k, &r);
+            InvalidateRect(data->hWnd, &r, FALSE);
+        }
+        UpdateWindow(data->hWnd);
+        if (p >= 1.0)
+            break;
+        Sleep(8);
+    }
+
+    /* done: repaint the final positions from the back buffer */
+    for (k = 0; k < data->nGlide; k++) {
+        RECT r;
+        glideRect(data, k, &r);
+        InvalidateRect(data->hWnd, &r, FALSE);
+    }
+    data->nGlide = 0;
+}
+
+/* pixel offset of a sliding sprite relative to its destination tile, so
+   things attached to the monster (HP bars) can follow it */
+static void
+glideOffset(PNHMapWindow data, int i, int j, int *dx, int *dy)
+{
+    int k;
+    *dx = *dy = 0;
+    for (k = 0; k < data->nGlide; k++)
+        if (data->glide[k].tx == i && data->glide[k].ty == j) {
+            double rem = 1.0 - data->glide[k].prog;
+            *dx = (int) ((data->glide[k].fx - i) * rem * data->xFrontTile);
+            *dy = (int) ((data->glide[k].fy - j) * rem * data->yFrontTile);
+            return;
+        }
+}
+
+/* draw sliding sprites over the already-blitted map (front buffer) */
+static void
+paintGlides(PNHMapWindow data, HDC hdc, int ox, int oy)
+{
+    HBITMAP saved;
+    int k;
+
+    if (data->nGlide <= 0)
+        return;
+    saved = SelectObject(data->tileDC, GetNHApp()->bmpMapTiles);
+
+    /* pass 1: blank each destination tile down to its background so the
+       monster is not also drawn at its final spot while it is sliding */
+    for (k = 0; k < data->nGlide; k++) {
+        int tx = data->glide[k].tx, ty = data->glide[k].ty;
+        RECT dr;
+        dr.left = ox + tx * data->xFrontTile;
+        dr.top = oy + ty * data->yFrontTile;
+        dr.right = dr.left + data->xFrontTile;
+        dr.bottom = dr.top + data->yFrontTile;
+        if (data->bkmap[tx][ty].glyph == NO_GLYPH
+            || data->bkmap[tx][ty].glyph == GLYPH_UNEXPLORED) {
+            HBRUSH b = CreateSolidBrush(RGB(0, 0, 0));
+            FillRect(hdc, &dr, b);
+            DeleteObject(b);
+        } else {
+            short nt = data->bkmap[tx][ty].gm.tileidx;
+            StretchBlt(hdc, dr.left, dr.top, data->xFrontTile,
+                       data->yFrontTile, data->tileDC, TILEBMP_X(nt),
+                       TILEBMP_Y(nt), GetNHApp()->mapTile_X,
+                       GetNHApp()->mapTile_Y, SRCCOPY);
+        }
+    }
+
+    /* pass 2: sprites at their interpolated positions */
+    for (k = 0; k < data->nGlide; k++) {
+        double e = data->glide[k].prog;
+        double cx = data->glide[k].fx + (data->glide[k].tx - data->glide[k].fx) * e;
+        double cy = data->glide[k].fy + (data->glide[k].ty - data->glide[k].fy) * e;
+        int px = ox + (int) (cx * data->xFrontTile + 0.5);
+        int py = oy + (int) (cy * data->yFrontTile + 0.5);
+        short nt = (short) data->glide[k].tileidx;
+
+        (*GetNHApp()->lpfnTransparentBlt)(
+            hdc, px, py, data->xFrontTile, data->yFrontTile, data->tileDC,
+            TILEBMP_X(nt), TILEBMP_Y(nt), GetNHApp()->mapTile_X,
+            GetNHApp()->mapTile_Y, TILE_BK_COLOR);
+
+        if (data->glide[k].isPet && iflags.wc_hilite_pet) {
+            HDC hdcPetMark = CreateCompatibleDC(hdc);
+            HBITMAP old = SelectObject(hdcPetMark, GetNHApp()->bmpPetMark);
+            (*GetNHApp()->lpfnTransparentBlt)(
+                hdc, px, py, data->xFrontTile, data->yFrontTile, hdcPetMark,
+                0, 0, TILE_X, TILE_Y, TILE_BK_COLOR);
+            SelectObject(hdcPetMark, old);
+            DeleteDC(hdcPetMark);
+        }
+    }
+    SelectObject(data->tileDC, saved);
 }
 
 static void clearAll(PNHMapWindow data)
@@ -1173,6 +1436,7 @@ static void clearAll(PNHMapWindow data)
             data->locDirty[x][y] = TRUE;
         }
     data->mapDirty = TRUE;
+    data->nDep = data->nArr = data->nGlide = 0;
 }
 
 static void dirtyAll(PNHMapWindow data)
@@ -1228,6 +1492,9 @@ onPaint(HWND hWnd)
         ox, oy, frontWidth, frontHeight,
         data->backBufferDC, 0, 0, data->backWidth, data->backHeight, SRCCOPY);
 
+    /* sliding monsters / hero (see glideRun) */
+    paintGlides(data, hFrontBufferDC, ox, oy);
+
     /* ---- Enemy HP bars (pixel-style, only for spotted monsters) ---- */
     if (data->xFrontTile >= 10 && data->yFrontTile >= 10) {
         int i, j;
@@ -1250,8 +1517,12 @@ onPaint(HWND hWnd)
                     barW = data->xFrontTile - 4;
                     if (barW < 6) barW = 6;
                     barH = max(3, data->yFrontTile / 6);
-                    px = ox + i * data->xFrontTile + 2;
-                    py = oy + j * data->yFrontTile + 2;
+                    {
+                        int gdx, gdy;
+                        glideOffset(data, i, j, &gdx, &gdy);
+                        px = ox + i * data->xFrontTile + 2 + gdx;
+                        py = oy + j * data->yFrontTile + 2 + gdy;
+                    }
                     filled = (barW * mtmp->mhp) / mtmp->mhpmax;
                     if (filled < 0) filled = 0;
                     if (filled > barW) filled = barW;

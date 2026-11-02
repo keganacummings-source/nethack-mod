@@ -2244,7 +2244,7 @@ initMapTiles(void)
     /* Resolve relative tile_file (or default tiles.bmp) next to the exe.
        This avoids cwd-dependent failures from shortcuts / launchers. */
     if (!tilepath || !*tilepath)
-        tilepath = "tiles.bmp";
+        return TRUE; /* no tile_file set: no tileset, text map */
 
     /* Ensure exe path is known */
     if (!windows_exepath())
