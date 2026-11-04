@@ -10,6 +10,8 @@ staticfn void mkobj_erosions(struct obj *);
 staticfn void mkbox_cnts(struct obj *);
 staticfn unsigned nextoid(struct obj *, struct obj *);
 staticfn void mksobj_init(struct obj **, boolean);
+staticfn void nh_randomize_gear(struct obj *);
+staticfn int nh_rand_spell(int);
 staticfn int item_on_ice(struct obj *);
 staticfn void shrinking_glob_gone(struct obj *);
 staticfn void obj_timer_checks(struct obj *, coordxy, coordxy, int);
@@ -1174,6 +1176,103 @@ mksobj_init(struct obj **obj, boolean artif)
         otmp->opoisoned = 1;
 }
 
+/* --------------------------------------------------------------------
+ * NetHack Enhanced: randomly generated weapon and armor properties.
+ *
+ * Mundane gear is no longer identical every game.  Each piece that comes
+ * into the dungeon rolls:
+ *   - an enchantment (spe): to-hit and to-damage for weapons, AC for armor,
+ *   - a matching blessing or curse,
+ *   - sometimes a bonus trait: erosion-proofing, or poison on a blade.
+ * A spellbook can also turn up holding a randomly drawn spell.
+ *
+ * All of it is expressed with fields the engine already understands, so
+ * shop pricing, identification, erosion, blessing rules and object
+ * handling keep working unchanged.
+ * -------------------------------------------------------------------- */
+
+staticfn int
+nh_rand_spell(int exclude)
+{
+    int i, n = 0, pick = -1;
+
+    for (i = 0; i < NUM_OBJECTS; i++) {
+        if (objects[i].oc_class != SPBOOK_CLASS || objects[i].oc_unique
+            || i == exclude || i == SPE_BLANK_PAPER || i == SPE_NOVEL)
+            continue;
+        /* reservoir pick: one uniform choice across the whole spell list */
+        if (!rn2(++n))
+            pick = i;
+    }
+    return pick;
+}
+
+staticfn void
+nh_randomize_gear(struct obj *otmp)
+{
+    int cls = otmp->oclass, r, ench = 0, sp;
+
+    if (objects[otmp->otyp].oc_unique || otmp->oartifact)
+        return;
+
+    if (cls == SPBOOK_CLASS) {
+        /* one spellbook in four holds a spell drawn at random from the
+           whole spell list instead of the type that was rolled */
+        if (otmp->otyp != SPE_BLANK_PAPER && otmp->otyp != SPE_NOVEL
+            && rn2(4) == 0) {
+            sp = nh_rand_spell(otmp->otyp);
+            if (sp >= 0) {
+                otmp->otyp = sp;
+                unknow_object(otmp); /* knowledge flags for the new spell */
+            }
+        }
+        return;
+    }
+
+    if (cls != WEAPON_CLASS && cls != ARMOR_CLASS)
+        return;
+    if (otmp->spe != 0) /* already enchanted elsewhere; leave it alone */
+        return;
+
+    r = rn2(100);
+    if (cls == WEAPON_CLASS) {
+        if (r < 6)
+            ench = rn1(3, 4); /* +4..+6, masterwork */
+        else if (r < 30)
+            ench = rn1(3, 1); /* +1..+3 */
+        else if (r < 42)
+            ench = -rn1(3, 1); /* -1..-3 */
+    } else {
+        if (r < 4)
+            ench = rn1(3, 4); /* +4..+6 */
+        else if (r < 26)
+            ench = rn1(3, 1); /* +1..+3 */
+        else if (r < 36)
+            ench = -rn1(3, 1); /* -1..-3 */
+    }
+
+    if (ench > 0) {
+        otmp->spe = ench;
+        if (!rn2(3)) {
+            otmp->blessed = 1;
+            otmp->cursed = 0;
+        }
+    } else if (ench < 0) {
+        otmp->spe = ench;
+        if (rn2(10) < 7) {
+            otmp->blessed = 0;
+            otmp->cursed = 1;
+        }
+    }
+
+    r = rn2(100);
+    if (r < 10) {
+        otmp->oerodeproof = 1; /* rustproof / crackproof */
+    } else if (r < 20 && cls == WEAPON_CLASS) {
+        otmp->opoisoned = 1; /* coated blade */
+    }
+}
+
 /* mksobj(): create a specific type of object; result is always non-Null */
 struct obj *
 mksobj(int otyp, boolean init, boolean artif)
@@ -1254,6 +1353,9 @@ mksobj(int otyp, boolean init, boolean artif)
         /* mk_artifact() with otmp and A_NONE will never return NULL */
         otmp = mk_artifact(otmp, (aligntyp) A_NONE, 99, FALSE);
     }
+    /* NetHack Enhanced: roll random properties on the new gear */
+    nh_randomize_gear(otmp);
+
     otmp->owt = weight(otmp);
     return otmp;
 }

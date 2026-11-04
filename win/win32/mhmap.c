@@ -30,7 +30,8 @@
 
 /* smooth glide animation of monsters / hero between tiles */
 #define MAX_GLIDE 32
-#define GLIDE_DEFAULT_MS 90   /* single-step slide time; override with
+#define GLIDE_DEFAULT_MS 100  /* single-step slide time; override with
+#define GLIDE_MIN_FRAME_MS 4  /* floor for the per-frame sleep */
                                  environment variable NH_GLIDE_MS (0 = off) */
 
 #define TILEBMP_X(ntile) \
@@ -130,6 +131,8 @@ static void glideNote(PNHMapWindow data, int i, int j,
 static void glideRun(PNHMapWindow data);
 static void paintGlides(PNHMapWindow data, HDC hdc, int ox, int oy);
 static void glideOffset(PNHMapWindow data, int i, int j, int *dx, int *dy);
+static boolean glideSourceBusy(PNHMapWindow data, int k);
+static void blankTileChrome(HDC hdc, const RECT *dr);
 
 #if (VERSION_MAJOR < 4) && (VERSION_MINOR < 4) && (PATCHLEVEL < 2)
 static void nhglyph2charcolor(short glyph, uchar *ch, int *color);
@@ -1278,7 +1281,7 @@ glideRect(PNHMapWindow data, int k, RECT *r)
 static void
 glideRun(PNHMapWindow data)
 {
-    int a, d, k, dur;
+    int a, d, k, dur, frame;
     boolean used[MAX_GLIDE];
     ULONGLONG t0;
 
@@ -1322,15 +1325,21 @@ glideRun(PNHMapWindow data)
     dur = data->glideMs;
     if (svc.context.run || gm.multi > 0)
         dur = max(25, dur / 2);
+    /* aim for about twenty intermediate positions per step so the slide
+       reads as motion rather than a short jump, without busy waiting */
+    frame = max(GLIDE_MIN_FRAME_MS, dur / 20);
 
     t0 = GetTickCount64();
     for (;;) {
         ULONGLONG el = GetTickCount64() - t0;
         double p = (el >= (ULONGLONG) dur) ? 1.0 : (double) el / (double) dur;
-        double e = p * (2.0 - p); /* ease-out */
+        /* smoothstep: gentle at both ends, so a sprite settles into the new
+           tile instead of snapping to a halt */
+        double e = p * p * (3.0 - 2.0 * p);
 
         for (k = 0; k < data->nGlide; k++) {
             RECT r;
+
             data->glide[k].prog = e;
             glideRect(data, k, &r);
             InvalidateRect(data->hWnd, &r, FALSE);
@@ -1338,7 +1347,7 @@ glideRun(PNHMapWindow data)
         UpdateWindow(data->hWnd);
         if (p >= 1.0)
             break;
-        Sleep(8);
+        Sleep(frame);
     }
 
     /* done: repaint the final positions from the back buffer */
@@ -1366,6 +1375,31 @@ glideOffset(PNHMapWindow data, int i, int j, int *dx, int *dy)
         }
 }
 
+
+/* TRUE if the tile a sprite is leaving is itself another sprite target, so
+   its pixels are not a clean bit of terrain that can be borrowed */
+static boolean
+glideSourceBusy(PNHMapWindow data, int k)
+{
+    int m;
+
+    for (m = 0; m < data->nGlide; m++)
+        if (m != k && data->glide[m].tx == data->glide[k].fx
+            && data->glide[m].ty == data->glide[k].fy)
+            return TRUE;
+    return FALSE;
+}
+
+/* fill one tile with the map chrome ink colour rather than pure black */
+static void
+blankTileChrome(HDC hdc, const RECT *dr)
+{
+    HBRUSH b = CreateSolidBrush(RGB(0x14, 0x0E, 0x0C));
+
+    FillRect(hdc, dr, b);
+    DeleteObject(b);
+}
+
 /* draw sliding sprites over the already-blitted map (front buffer) */
 static void
 paintGlides(PNHMapWindow data, HDC hdc, int ox, int oy)
@@ -1381,22 +1415,37 @@ paintGlides(PNHMapWindow data, HDC hdc, int ox, int oy)
        monster is not also drawn at its final spot while it is sliding */
     for (k = 0; k < data->nGlide; k++) {
         int tx = data->glide[k].tx, ty = data->glide[k].ty;
+        int fx = data->glide[k].fx, fy = data->glide[k].fy;
+        glyph_info *bgp = &data->bkmap[tx][ty];
         RECT dr;
+
         dr.left = ox + tx * data->xFrontTile;
         dr.top = oy + ty * data->yFrontTile;
         dr.right = dr.left + data->xFrontTile;
         dr.bottom = dr.top + data->yFrontTile;
-        if (data->bkmap[tx][ty].glyph == NO_GLYPH
-            || data->bkmap[tx][ty].glyph == GLYPH_UNEXPLORED) {
-            HBRUSH b = CreateSolidBrush(RGB(0, 0, 0));
-            FillRect(hdc, &dr, b);
-            DeleteObject(b);
-        } else {
-            short nt = data->bkmap[tx][ty].gm.tileidx;
+
+        if (bgp->glyph != NO_GLYPH && bgp->glyph != GLYPH_UNEXPLORED) {
+            short nt = bgp->gm.tileidx;
+
             StretchBlt(hdc, dr.left, dr.top, data->xFrontTile,
                        data->yFrontTile, data->tileDC, TILEBMP_X(nt),
                        TILEBMP_Y(nt), GetNHApp()->mapTile_X,
                        GetNHApp()->mapTile_Y, SRCCOPY);
+        } else if (glideSourceBusy(data, k)) {
+            blankTileChrome(hdc, &dr);
+        } else {
+            /* This spot has no background artwork of its own, the map draws
+               those cells as a single opaque sprite.  Borrow the pixels of
+               the tile the sprite has just left - adjacent, and the same
+               terrain in nearly every case - instead of flashing a black
+               square where the monster is heading. */
+            RECT sr;
+
+            sr.left = fx * data->xBackTile;
+            sr.top = fy * data->yBackTile;
+            StretchBlt(hdc, dr.left, dr.top, data->xFrontTile,
+                       data->yFrontTile, data->backBufferDC, sr.left,
+                       sr.top, data->xBackTile, data->yBackTile, SRCCOPY);
         }
     }
 
